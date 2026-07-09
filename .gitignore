@@ -1,0 +1,36 @@
+# Runtime data and generated state
+/dataset/
+/logs/
+/output/
+/resources/
+/.pipeline_state/
+/.pipeline_locks/
+
+# Large generated artifacts
+*.pk
+*.pkl
+*.pt
+*.pth
+*.bin
+*.cache
+
+# Secrets
+.env
+*.key
+*.pem
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# Runtime collection outputs and local secrets
+/information_collector/result/
+/information_collector/config/
+/dataset/
+/logs/
+/.pipeline_state/
+/.pipeline_locks/
+.env
+
+/knowledge_collector/result/

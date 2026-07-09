@@ -1,0 +1,60 @@
+[basic]
+base_url = ""
+api_base = ""
+model = "qwen-plus"
+api_key = ""
+max_tokens = 2048
+context_window = 32769
+temperature = 0.6
+enable_thinking = false
+
+[clarify]
+base_url = ""
+api_base = ""
+model = "qwen-plus"
+api_key = ""
+max_tokens = 2048
+context_window = 32769
+temperature = 0.6
+enable_thinking = false
+
+[planner]
+base_url = ""
+api_base = ""
+model = "qwen-plus"
+api_key = ""
+max_tokens = 8192
+context_window = 32769
+temperature = 0.6
+enable_thinking = false
+
+[query_generation]
+base_url = ""
+api_base = ""
+model = "qwen-plus"
+api_key = ""
+max_tokens = 1024
+context_window = 32769
+temperature = 0.6
+enable_thinking = false
+
+[evaluate]
+base_url = ""
+api_base = ""
+model = "qwen-plus"
+api_key = ""
+max_tokens = 4096
+context_window = 32769
+temperature = 0.6
+enable_thinking = false
+
+[report]
+base_url = ""
+api_base = ""
+model = "qwen-plus"
+api_key = ""
+max_tokens = 8192
+context_window = 32769
+temperature = 0.6
+enable_thinking = false
+
