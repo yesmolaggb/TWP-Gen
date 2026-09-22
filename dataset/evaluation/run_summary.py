@@ -2,7 +2,7 @@
 
 Example
 -------
-    python evaluation_dataset/evaluation/run_summary.py \
+    python dataset/evaluation/run_summary.py \
         --results-root path/to/eval --backbone 32b
 
 The result directory must contain one subdirectory per method

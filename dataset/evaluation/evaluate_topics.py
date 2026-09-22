@@ -2,7 +2,7 @@
 
 Example
 -------
-    python evaluation_dataset/evaluation/evaluate_topics.py \
+    python dataset/evaluation/evaluate_topics.py \
         --article-dir output/article \
         --output      output/evaluation/scores.json \
         --repeats     3
