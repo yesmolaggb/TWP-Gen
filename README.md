@@ -13,6 +13,7 @@ scripts/run_twpgen_pipeline.sh   Full topic pipeline runner
 run_twpgen.py                    Main clustering entry point
 generate_whitepaper_outline.py   Outline synthesis entry point
 retrieve_outline_evidence.py     Evidence matching entry point
+article_generator/src/post_outline/   Outline-to-article generation (evidence-grounded path)
 twpgen_config.py                 Runtime config loader
 twpgen_config.example.json       Config template without secrets
 .env.example                     Environment variable template
