@@ -1,5 +1,7 @@
 # TWP-Gen Evaluation Dataset
 
+English | [中文](README.zh-CN.md)
+
 This folder holds the evaluation-side resources of the TWP-Gen paper: **Technical
 White Paper Generation via Multidimensional Feature Fusion**.
 
@@ -52,7 +54,7 @@ only to derive the white-paper section taxonomy.
 Scoring a directory of generated white papers:
 
 ```bash
-python evaluation_dataset/evaluation/evaluate_topics.py \
+python dataset/evaluation/evaluate_topics.py \
   --article-dir output/article \
   --output      output/evaluation/scores.json \
   --repeats     3
@@ -61,7 +63,7 @@ python evaluation_dataset/evaluation/evaluate_topics.py \
 Summarising existing per-method result files:
 
 ```bash
-python evaluation_dataset/evaluation/run_summary.py \
+python dataset/evaluation/run_summary.py \
   --results-root path/to/eval \
   --backbone     32b
 ```
@@ -91,10 +93,10 @@ script needs to hard-code it:
 
 | Setting | Value |
 |---|---|
-| `evaluation_dataset_dir` | `./evaluation_dataset` |
-| `topic_dataset_file` | `./evaluation_dataset/whitepaper_topics.json` |
-| `topic_dataset_txt` | `./evaluation_dataset/whitepaper_topics.txt` |
-| `evaluation_code_dir` | `./evaluation_dataset/evaluation` |
+| `evaluation_dataset_dir` | `./dataset` |
+| `topic_dataset_file` | `./dataset/whitepaper_topics.json` |
+| `topic_dataset_txt` | `./dataset/whitepaper_topics.txt` |
+| `evaluation_code_dir` | `./dataset/evaluation` |
 
 ```python
 import twpgen_settings as cfg

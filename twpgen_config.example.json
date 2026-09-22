@@ -51,10 +51,10 @@
   },
 
   "evaluation_dataset": {
-    "dataset_dir": "./evaluation_dataset",
-    "topics_json": "./evaluation_dataset/whitepaper_topics.json",
-    "topics_txt": "./evaluation_dataset/whitepaper_topics.txt",
-    "code_dir": "./evaluation_dataset/evaluation"
+    "dataset_dir": "./dataset",
+    "topics_json": "./dataset/whitepaper_topics.json",
+    "topics_txt": "./dataset/whitepaper_topics.txt",
+    "code_dir": "./dataset/evaluation"
   },
 
   "models": {

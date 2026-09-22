@@ -167,22 +167,22 @@ article_source_dir = path_setting(
 evaluation_dataset_dir = path_setting(
     ("TWPGEN_EVAL_DATASET_DIR",),
     "evaluation_dataset.dataset_dir",
-    "./evaluation_dataset",
+    "./dataset",
 )
 topic_dataset_file = path_setting(
     ("TWPGEN_TOPIC_DATASET",),
     "evaluation_dataset.topics_json",
-    "./evaluation_dataset/whitepaper_topics.json",
+    "./dataset/whitepaper_topics.json",
 )
 topic_dataset_txt = path_setting(
     ("TWPGEN_TOPIC_DATASET_TXT",),
     "evaluation_dataset.topics_txt",
-    "./evaluation_dataset/whitepaper_topics.txt",
+    "./dataset/whitepaper_topics.txt",
 )
 evaluation_code_dir = path_setting(
     ("TWPGEN_EVAL_CODE_DIR",),
     "evaluation_dataset.code_dir",
-    "./evaluation_dataset/evaluation",
+    "./dataset/evaluation",
 )
 
 

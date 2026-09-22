@@ -1,5 +1,12 @@
 # Runtime data and generated state
-/dataset/
+# NOTE: /dataset/ is the pipeline's runtime root, but it also holds the committed
+# evaluation resources (task list + code), so those paths are re-included below.
+/dataset/*
+!/dataset/README.md
+!/dataset/README.zh-CN.md
+!/dataset/whitepaper_topics.json
+!/dataset/whitepaper_topics.txt
+!/dataset/evaluation/
 /logs/
 /output/
 /resources/
@@ -27,7 +34,6 @@ __pycache__/
 # Runtime collection outputs and local secrets
 /information_collector/result/
 /information_collector/config/
-/dataset/
 /logs/
 /.pipeline_state/
 /.pipeline_locks/
