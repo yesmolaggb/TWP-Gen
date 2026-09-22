@@ -12,6 +12,9 @@ The repository keeps only the main pipeline code, a root-level configuration tem
 twpgen_settings.py                     Central configuration (single source of truth)
 twpgen_config.example.json             Configuration template without secrets
 twpgen_config.json                     Your local configuration (created from the template)
+evaluation_dataset/whitepaper_topics.json
+                                       The 60 generation tasks of the paper
+evaluation_dataset/evaluation/         Metric definitions, rubrics and scoring scripts
 scripts/run_twpgen_pipeline.sh         Full topic pipeline runner
 outline_generator/run_twpgen.py        Main clustering entry point
 outline_generator/generate_whitepaper_outline.py
@@ -66,20 +69,17 @@ Prepare your input under the configured dataset root, defaulting to `./dataset/<
 
 ## Dataset
 
-The 60 generation tasks used in the paper and the full evaluation protocol live in
-`数据集/`:
+The 60 generation tasks used in the paper and the evaluation code live in
+`evaluation_dataset/`:
 
-| File | What it is |
+| Path | What it is |
 |---|---|
-| `数据集/whitepaper_topics.json` | The 60 tasks with `id`, `title` and `domain` |
-| `数据集/whitepaper_topics.txt` | The same titles as a plain one-per-line list |
-| `数据集/evaluation_method.md` | The evaluation protocol in prose |
-| `数据集/evaluation_method.json` | The same protocol in machine-readable form |
-| `数据集/whitepaper_domain_classification.csv` | Domain label per task |
-| `数据集/whitepaper_domain_summary.csv` | Domain counts and shares |
+| `evaluation_dataset/whitepaper_topics.json` | The 60 tasks with `id`, `title` and `domain` |
+| `evaluation_dataset/whitepaper_topics.txt` | The same titles as a plain one-per-line list |
+| `evaluation_dataset/evaluation/` | The evaluation code: metrics, rubrics, scoring and summarisation |
 
 Their locations are part of the central configuration, so any stage can read them
-through `twpgen_settings.py` (`topic_dataset_file`, `evaluation_protocol_file`, ...).
+through `twpgen_settings.py` (`topic_dataset_file`, `evaluation_code_dir`, ...).
 
 ## Project Layout
 

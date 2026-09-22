@@ -51,11 +51,10 @@
   },
 
   "evaluation_dataset": {
-    "dataset_dir": "./数据集",
-    "topics_json": "./数据集/whitepaper_topics.json",
-    "topics_txt": "./数据集/whitepaper_topics.txt",
-    "protocol_json": "./数据集/evaluation_method.json",
-    "protocol_md": "./数据集/evaluation_method.md"
+    "dataset_dir": "./evaluation_dataset",
+    "topics_json": "./evaluation_dataset/whitepaper_topics.json",
+    "topics_txt": "./evaluation_dataset/whitepaper_topics.txt",
+    "code_dir": "./evaluation_dataset/evaluation"
   },
 
   "models": {

@@ -163,29 +163,26 @@ article_source_dir = path_setting(
     ("TWPGEN_ARTICLE_SOURCE_DIR",), "paths.article_source_dir", "./knowledge_collector/result"
 )
 
-# Evaluation dataset: the 60 generation tasks and the evaluation protocol.
+# Evaluation dataset: the 60 generation tasks and the evaluation code.
 evaluation_dataset_dir = path_setting(
-    ("TWPGEN_EVAL_DATASET_DIR",), "evaluation_dataset.dataset_dir", "./数据集"
+    ("TWPGEN_EVAL_DATASET_DIR",),
+    "evaluation_dataset.dataset_dir",
+    "./evaluation_dataset",
 )
 topic_dataset_file = path_setting(
     ("TWPGEN_TOPIC_DATASET",),
     "evaluation_dataset.topics_json",
-    "./数据集/whitepaper_topics.json",
+    "./evaluation_dataset/whitepaper_topics.json",
 )
 topic_dataset_txt = path_setting(
     ("TWPGEN_TOPIC_DATASET_TXT",),
     "evaluation_dataset.topics_txt",
-    "./数据集/whitepaper_topics.txt",
+    "./evaluation_dataset/whitepaper_topics.txt",
 )
-evaluation_protocol_file = path_setting(
-    ("TWPGEN_EVAL_PROTOCOL",),
-    "evaluation_dataset.protocol_json",
-    "./数据集/evaluation_method.json",
-)
-evaluation_protocol_doc = path_setting(
-    ("TWPGEN_EVAL_PROTOCOL_MD",),
-    "evaluation_dataset.protocol_md",
-    "./数据集/evaluation_method.md",
+evaluation_code_dir = path_setting(
+    ("TWPGEN_EVAL_CODE_DIR",),
+    "evaluation_dataset.code_dir",
+    "./evaluation_dataset/evaluation",
 )
 
 
@@ -388,8 +385,7 @@ def as_dict() -> dict[str, Any]:
         "evaluation_dataset_dir": evaluation_dataset_dir,
         "topic_dataset_file": topic_dataset_file,
         "topic_dataset_txt": topic_dataset_txt,
-        "evaluation_protocol_file": evaluation_protocol_file,
-        "evaluation_protocol_doc": evaluation_protocol_doc,
+        "evaluation_code_dir": evaluation_code_dir,
         "dict_file": dict_file,
         "model_root": model_root,
         "language_model": lm_type,
@@ -419,8 +415,7 @@ def export_env() -> str:
         "TWPGEN_EVAL_DATASET_DIR": evaluation_dataset_dir,
         "TWPGEN_TOPIC_DATASET": topic_dataset_file,
         "TWPGEN_TOPIC_DATASET_TXT": topic_dataset_txt,
-        "TWPGEN_EVAL_PROTOCOL": evaluation_protocol_file,
-        "TWPGEN_EVAL_PROTOCOL_MD": evaluation_protocol_doc,
+        "TWPGEN_EVAL_CODE_DIR": evaluation_code_dir,
         "TWPGEN_VERB_SENSE_DICT": dict_file,
         "TWPGEN_MODEL_ROOT": model_root,
         "TWPGEN_DOCGEN_ENV": docgen_env,
