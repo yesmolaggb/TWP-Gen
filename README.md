@@ -57,15 +57,13 @@ TWPGEN_CONFIG=./my_config.json python twpgen_settings.py
 bash scripts/run_twpgen_pipeline.sh
 ```
 
-Workspace wrapper:
-
-```bash
-bash /workspace/run_twpgen_pipeline.sh
-```
+The runner exports the same configuration values used by the Python entry points,
+so the shell stages and the Python stages never disagree about paths or models.
 
 ## Data
 
 Prepare your input under the configured dataset root, defaulting to `./dataset/<topic>/`. The open-source package intentionally does not include private corpora, generated `.pk` features, checkpoints, or large dictionaries.
+
 ## Project Layout
 
 TWP-Gen is organized as a three-stage pipeline:
@@ -74,3 +72,12 @@ TWP-Gen is organized as a three-stage pipeline:
 - `outline_generator/`: cluster and fuse evidence, then write `dataset/<topic>/outline.txt`.
 - `article_generator/`: generate final Markdown/HTML articles from the outline.
 - `scripts/run_twpgen_pipeline.sh`: one-command pipeline runner.
+
+## Reuse of the configuration
+
+Only `twpgen_settings.py` reads `twpgen_config.json`/`.env`; every other module
+imports the resolved values from it. `outline_generator/twpgen_config.py` is kept
+as a thin re-export so the existing `import twpgen_config as args` call sites keep
+working, and `article_generator/src/post_outline/llm_settings.py` is the adapter
+used by the outline-to-article path. To add a new path or credential, add it once
+in `twpgen_settings.py` and use it everywhere.
