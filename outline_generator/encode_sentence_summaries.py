@@ -19,7 +19,9 @@ with open(summarized_file, 'r', encoding='utf-8') as f:
 
 # 使用与原项目相同的模型 - chinese-bert-wwm
 print("加载BERT模型...")
-model_path = '/workspace/model/chinese-bert-wwm'
+model_path = project_args.language_model_paths.get(
+    'chinese-bert-wwm', '/workspace/model/chinese-bert-wwm'
+)
 tokenizer = BertTokenizer.from_pretrained(model_path)
 model = BertModel.from_pretrained(model_path)
 

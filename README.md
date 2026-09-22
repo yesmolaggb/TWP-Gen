@@ -9,23 +9,47 @@ The repository keeps only the main pipeline code, a root-level configuration tem
 ## Main Entry Points
 
 ```text
-scripts/run_twpgen_pipeline.sh   Full topic pipeline runner
-run_twpgen.py                    Main clustering entry point
-generate_whitepaper_outline.py   Outline synthesis entry point
-retrieve_outline_evidence.py     Evidence matching entry point
-article_generator/src/post_outline/   Outline-to-article generation (evidence-grounded path)
-twpgen_config.py                 Runtime config loader
-twpgen_config.example.json       Config template without secrets
-.env.example                     Environment variable template
+twpgen_settings.py                     Central configuration (single source of truth)
+twpgen_config.example.json             Configuration template without secrets
+twpgen_config.json                     Your local configuration (created from the template)
+scripts/run_twpgen_pipeline.sh         Full topic pipeline runner
+outline_generator/run_twpgen.py        Main clustering entry point
+outline_generator/generate_whitepaper_outline.py
+                                       Outline synthesis entry point
+outline_generator/retrieve_outline_evidence.py
+                                       Evidence matching entry point
+article_generator/src/post_outline/    Outline-to-article generation (evidence-grounded path)
 ```
 
 ## Configuration
 
 ```bash
 cp .env.example .env
+cp twpgen_config.example.json twpgen_config.json
 ```
 
-Then edit `.env` locally. Keep real API keys out of Git.
+Both files live at the repository root. `twpgen_config.json` holds every path,
+API key, model name, dictionary location and topic list; `.env` only supplies
+secrets and per-machine overrides. Keep real API keys out of Git, and edit
+`twpgen_config.json` instead of scattering paths across scripts.
+
+Every entry point reads the same values through `twpgen_settings.py`:
+
+```bash
+python twpgen_settings.py           # print the resolved configuration as JSON
+python twpgen_settings.py --shell   # print export KEY=VALUE lines for shell scripts
+```
+
+The resolution order is: environment variable, then `twpgen_config.json`, then
+the built-in defaults in `twpgen_settings.py`. Relative paths in the config file
+are resolved against the repository root, so the same file works on any machine
+after you copy the repository.
+
+To point at a different config file, set `TWPGEN_CONFIG`:
+
+```bash
+TWPGEN_CONFIG=./my_config.json python twpgen_settings.py
+```
 
 ## Run
 

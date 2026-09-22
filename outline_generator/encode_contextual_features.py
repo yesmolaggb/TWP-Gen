@@ -15,10 +15,28 @@ from tqdm import tqdm
 import numpy as np
 
 
+import sys
+from pathlib import Path as _Path
+
+_REPO_ROOT = _Path(__file__).resolve().parents[1]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+try:  # central configuration: model paths, dictionary, dataset paths
+    import twpgen_settings as _cfg
+except Exception:  # pragma: no cover
+    _cfg = None
+
+
+def _model_dir(name: str, default: str) -> str:
+    if _cfg is None:
+        return default
+    return _cfg.language_model_paths.get(name, default)
+
+
 MODELS = {
-    'blu': (BertForMaskedLM, BertTokenizer, '/workspace/model/bert-large-uncased-whole-word-masking'),
-    'macbert': (BertForMaskedLM, BertTokenizer, '/workspace/model/chinese-macbert-base'),
-    'chinese-bert-wwm': (BertForMaskedLM, BertTokenizer, '/workspace/model/chinese-bert-wwm'),
+    'blu': (BertForMaskedLM, BertTokenizer, _model_dir('blu', '/workspace/model/bert-large-uncased-whole-word-masking')),
+    'macbert': (BertForMaskedLM, BertTokenizer, _model_dir('macbert', '/workspace/model/chinese-macbert-base')),
+    'chinese-bert-wwm': (BertForMaskedLM, BertTokenizer, _model_dir('chinese-bert-wwm', '/workspace/model/chinese-bert-wwm')),
 }
 
 def tensor_to_numpy(tensor):

@@ -1,14 +1,33 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-# ── 工作目录配置（修改此处即可切换整个项目）──
-TWPGEN_ROOT="${TWPGEN_ROOT:-/workspace/TWP-Gen}"
+# ── 工作目录配置 ──
+# 所有路径、API Key、模型名、主题清单等统一在 <repo>/twpgen_settings.py 定义
+# （取值来自 twpgen_config.json 与 .env）。这里只解析一次，其余变量全部从它导出。
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TWPGEN_ROOT="${TWPGEN_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 
 if [[ -f "$TWPGEN_ROOT/.env" ]]; then
   set -a
   source "$TWPGEN_ROOT/.env"
   set +a
 fi
+
+CONFIG_PY="${TWPGEN_CONFIG_PY:-$TWPGEN_ROOT/twpgen_settings.py}"
+if [[ -f "$CONFIG_PY" ]] && command -v python3 >/dev/null 2>&1; then
+  while IFS= read -r line; do
+    [[ -n "$line" ]] && eval "$line"
+  done < <(python3 "$CONFIG_PY" --shell)
+fi
+
+# Central config lives at the repository root. Create it on first run so that
+# every stage below reads the same file.
+ROOT_CONFIG="${TWPGEN_CONFIG:-$TWPGEN_ROOT/twpgen_config.json}"
+if [[ ! -f "$ROOT_CONFIG" && -f "$TWPGEN_ROOT/twpgen_config.example.json" ]]; then
+  cp "$TWPGEN_ROOT/twpgen_config.example.json" "$ROOT_CONFIG"
+fi
+export TWPGEN_CONFIG="$ROOT_CONFIG"
+
 SEARCH_REF_ROOT="${TWPGEN_KNOWLEDGE_ROOT:-${TWPGEN_SEARCH_ROOT:-$TWPGEN_ROOT/knowledge_collector}}"
 OUTLINE_ROOT="${TWPGEN_OUTLINE_ROOT:-$TWPGEN_ROOT/outline_generator}"
 ARTICLE_ROOT="${TWPGEN_ARTICLE_ROOT:-$TWPGEN_ROOT/article_generator}"
@@ -360,18 +379,17 @@ run_topic_pipeline() {
   prepare_topic_session
 
   # Step 1: 获取新闻（只处理当前题目）
-  activate_env "${TWPGEN_DOCGEN_ENV:-/workspace/conda/docgen}"
+activate_env "${TWPGEN_DOCGEN_ENV:-$TWPGEN_ROOT/.venv-docgen}"
   cd "$SEARCH_REF_ROOT"
   export TWPGEN_ROOT="$TWPGEN_ROOT"
   export TWPGEN_DATASET_ROOT="$DATASET_BASE_DIR"
   export TWPGEN_TOPIC_FILE="$TOPIC_FILE"
   export TWPGEN_COLLECTOR_RESULT_DIR="${TWPGEN_COLLECTOR_RESULT_DIR:-$SEARCH_REF_ROOT/result}"
-  export TWPGEN_CONFIG="${TWPGEN_CONFIG:-$OUTLINE_ROOT/twpgen_config.example.json}"
   run_python_step "collect_references" "阶段：获取新闻" "collect_references.log" \
     "$SEARCH_REF_ROOT/collect_references.py" --topic "$topic"
 
   # Step 2: TWP-Gen 流程
-  activate_env "${TWPGEN_PIPELINE_ENV:-/workspace/conda/GESI}"
+activate_env "${TWPGEN_PIPELINE_ENV:-$TWPGEN_ROOT/.venv}"
   cd "$TWPGEN_ROOT"
 
   run_python_step "topic_init_prepare_corpus" "阶段：初始化语料" "topic_init_prepare_corpus.log" \
@@ -391,7 +409,7 @@ run_topic_pipeline() {
     "$OUTLINE_ROOT/generate_whitepaper_outline.py"
 
   # Step 3: Article generation from the generated outline
-  activate_env "${TWPGEN_ARTICLE_ENV:-${TWPGEN_PIPELINE_ENV:-/workspace/conda/GESI}}"
+activate_env "${TWPGEN_ARTICLE_ENV:-${TWPGEN_PIPELINE_ENV:-$TWPGEN_ROOT/.venv}}"
   cd "$ARTICLE_ROOT"
   mkdir -p "$TWPGEN_ROOT/output/article" "$TWPGEN_ROOT/output/references"
   run_python_step "final_generate_article" "Article generation from outline" "final_generate_article.log" \

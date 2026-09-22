@@ -85,9 +85,22 @@ if __name__ == "__main__":
                         help="数据集目录，默认为 ./dataset/{TWPGEN_DATASET}")
     args = parser.parse_args()
 
-    dataset_name = os.environ.get("TWPGEN_DATASET", "topic")
-    TWPGEN_ROOT = os.path.dirname(os.path.abspath(__file__))  # /workspace/TWP-Gen
-    DATASET_DIR = args.dataset_dir or os.path.join(TWPGEN_ROOT, "dataset", dataset_name)
+    import sys
+    from pathlib import Path
+
+    REPO_ROOT = Path(__file__).resolve().parents[1]
+    if str(REPO_ROOT) not in sys.path:
+        sys.path.insert(0, str(REPO_ROOT))
+    try:  # central configuration: dataset paths
+        import twpgen_settings as _cfg
+
+        dataset_name = _cfg.dataset
+        default_dataset_dir = os.path.join(_cfg.dataset_root, dataset_name)
+    except Exception:  # pragma: no cover
+        dataset_name = os.environ.get("TWPGEN_DATASET", "topic")
+        default_dataset_dir = os.path.join(str(REPO_ROOT), "dataset", dataset_name)
+
+    DATASET_DIR = args.dataset_dir or default_dataset_dir
 
     corpus_txt_path  = os.path.join(DATASET_DIR, "corpus.txt")
     corpus_info_path = os.path.join(DATASET_DIR, "corpus_info.pk")

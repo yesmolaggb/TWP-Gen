@@ -1,0 +1,98 @@
+{
+  "project_name": "TWP-Gen",
+  "paper_title": "Technical White Paper Generation via Multidimensional Feature Fusion",
+
+  "dataset_name": "topic",
+  "dataset_root": "./dataset",
+  "resource_dir": "./resources",
+  "output_dir": "./output",
+
+  "datasets": {
+    "duee_dir": "./dataset/DuEE"
+  },
+
+  "spacy_model": "zh_core_web_lg",
+  "language_model": "chinese-bert-wwm",
+  "gpu_ids": [0, 1],
+
+  "paths": {
+    "outline_dir": "./dataset",
+    "article_source_dir": "./knowledge_collector/result"
+  },
+
+  "article": {
+    "article_dir": "./output/article",
+    "references_dir": "./output/references"
+  },
+
+  "topics": {
+    "topic_file": "./knowledge_collector/topic.txt",
+    "default": [
+      "HDM技术白皮书",
+      "MagicOS安全技术白皮书",
+      "基于智能体的校园自智网络技术白皮书",
+      "轻质屋面光伏系统安全技术白皮书",
+      "酒业数智供应链发展技术白皮书",
+      "医院通用人工智能平台技术白皮书",
+      "HiSec Endpoint智能终端安全系统技术白皮书",
+      "云AI视频技术白皮书",
+      "Atlas 300T Pro训练卡技术白皮书",
+      "华为园区网络Wi-Fi 7零漫游技术白皮书"
+    ],
+    "source_dir_aliases": {
+      "HiSec Endpoint智能终端安全系统技术白皮书": "HiSec_Endpoint智能终端安全系统技术白皮书",
+      "Atlas 300T Pro训练卡技术白皮书": "Atlas_300T_Pro训练卡技术白皮书",
+      "华为园区网络Wi-Fi 7零漫游技术白皮书": "华为园区网络Wi-Fi_7零漫游技术白皮书"
+    }
+  },
+
+  "resources": {
+    "verb_sense_dict": "./resources/verb_sense_dict_w_features.json"
+  },
+
+  "models": {
+    "model_root": "/workspace/model",
+    "language_models": {
+      "blu": "bert-large-uncased-whole-word-masking",
+      "macbert": "chinese-macbert-base",
+      "chinese-bert-wwm": "chinese-bert-wwm"
+    }
+  },
+
+  "llm": {
+    "api_key": "",
+    "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    "model": "qwen3-32b",
+    "timeout": 360,
+    "enable_thinking": false
+  },
+
+  "runtime": {
+    "docgen_env": "/workspace/conda/docgen",
+    "pipeline_env": "/workspace/conda/GESI",
+    "article_env": ""
+  },
+
+  "external_services": {
+    "openai_api_key_env": "OPENAI_API_KEY",
+    "openai_base_url_env": "OPENAI_BASE_URL",
+    "tavily_api_key_env": "TAVILY_API_KEY"
+  },
+
+  "feature_fusion": {
+    "min_verb_freq": 3,
+    "top_verb_ratio": 0.8,
+    "min_obj_freq": 3,
+    "top_obj_ratio": 0.8,
+    "top_k_expand_result": 50
+  },
+
+  "graph_model": {
+    "name": "GAE",
+    "input_dim": 768,
+    "hidden1_dim": 512,
+    "hidden2_dim": 256,
+    "num_epoch": 100,
+    "learning_rate": 0.001
+  }
+}

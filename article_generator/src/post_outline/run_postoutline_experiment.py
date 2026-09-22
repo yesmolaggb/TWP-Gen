@@ -32,28 +32,23 @@ from typing import Iterable, Sequence
 
 from openai import OpenAI
 
-from llm_settings import build_client, load_env, resolve_settings
-
-
-TOPICS = (
-    "HDM技术白皮书",
-    "MagicOS安全技术白皮书",
-    "基于智能体的校园自智网络技术白皮书",
-    "轻质屋面光伏系统安全技术白皮书",
-    "酒业数智供应链发展技术白皮书",
-    "医院通用人工智能平台技术白皮书",
-    "HiSec Endpoint智能终端安全系统技术白皮书",
-    "云AI视频技术白皮书",
-    "Atlas 300T Pro训练卡技术白皮书",
-    "华为园区网络Wi-Fi 7零漫游技术白皮书",
+from llm_settings import (
+    build_client,
+    default_outline_root,
+    default_source_root,
+    load_env,
+    load_topics as load_topic_list,
+    repo_output_dir,
+    resolve_settings,
+    source_dir_aliases,
 )
 
 
-SOURCE_DIR_ALIASES = {
-    "HiSec Endpoint智能终端安全系统技术白皮书": "HiSec_Endpoint智能终端安全系统技术白皮书",
-    "Atlas 300T Pro训练卡技术白皮书": "Atlas_300T_Pro训练卡技术白皮书",
-    "华为园区网络Wi-Fi 7零漫游技术白皮书": "华为园区网络Wi-Fi_7零漫游技术白皮书",
-}
+# Topic list and directory aliases come from the repository config
+# (``twpgen_config.json`` → ``topics.default`` / ``topics.source_dir_aliases``),
+# so this module no longer hard-codes them.
+TOPICS = tuple(load_topic_list())
+SOURCE_DIR_ALIASES = dict(source_dir_aliases())
 
 
 SYSTEM_PROMPT = """你是一名资深的中文技术白皮书作者，面向专业读者撰写可核验、信息密度高、技术解释深入的技术内容。
@@ -1469,9 +1464,24 @@ def generate_topic(
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--outline-root", type=Path, required=True)
-    parser.add_argument("--source-root", type=Path, required=True)
-    parser.add_argument("--output-root", type=Path, required=True)
+    parser.add_argument(
+        "--outline-root",
+        type=Path,
+        default=default_outline_root(),
+        help="大纲目录；默认取仓库配置 paths.outline_dir",
+    )
+    parser.add_argument(
+        "--source-root",
+        type=Path,
+        default=default_source_root(),
+        help="来源目录；默认取仓库配置 paths.article_source_dir",
+    )
+    parser.add_argument(
+        "--output-root",
+        type=Path,
+        default=Path(repo_output_dir()) / "post_outline",
+        help="输出目录；默认 <output_dir>/post_outline",
+    )
     parser.add_argument("--env-file", type=Path, default=None,
                         help="defaults to <repo root>/.env")
     parser.add_argument("--model", default=None, help="overrides the resolved default model")

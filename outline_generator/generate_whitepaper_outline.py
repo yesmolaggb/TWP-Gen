@@ -757,7 +757,7 @@ def main():
     )
     parser.add_argument(
         "--title_file", type=str,
-        default="/workspace/TWP-Gen/knowledge_collector/topic.txt",
+        default=project_args.topic_file,
         help="题目文件路径"
     )
     parser.add_argument(

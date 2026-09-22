@@ -1,24 +1,16 @@
-"""Single source of truth for model / API settings in this module.
+"""Adapter between this module and the repository-wide configuration.
 
-Everything that talks to an LLM (generation, editorial pass, citation rebuild)
-resolves its credentials through :func:`resolve_settings` and creates its client
-through :func:`build_client`, so a key only ever has to be configured once.
+All credentials, paths, the topic list and the verb-sense dictionary location are
+defined once in ``<repo>/twpgen_settings.py`` (+ ``twpgen_config.json``). This
+file only:
 
-Resolution order (first hit wins)
----------------------------------
-1. explicit arguments (``--model`` / ``--base-url`` / ``--api-key``)
-2. environment variables, including the values loaded from the project ``.env``
+* imports that module (adding the repository root to ``sys.path``),
+* exposes :func:`resolve_settings` / :func:`build_client` for the entry points,
+* provides convenient accessors for the paths this module needs.
 
-   * key:      ``ARTICLE_LLM_API_KEY`` → ``OPENAI_API_KEY``
-   * endpoint: ``ARTICLE_LLM_BASE_URL`` → ``OPENAI_BASE_URL`` → ``OPENAI_API_BASE``
-   * model:    ``ARTICLE_LLM_MODEL`` → ``TWPGEN_LLM_MODEL``
-
-3. the repository's own config module ``article_generator/src/config/llms_config.py``
-   (which reads ``article_generator/src/config/llms.toml``)
-4. built-in defaults (see ``DEFAULT_*`` below)
-
-The ``.env`` file is looked up at ``<repo root>/.env`` unless a path is given
-explicitly (``--env-file``).
+Priority for the model settings stays: explicit arguments → repository config
+(``twpgen_settings.llm``) → this module's fallback defaults. So a single entry in
+the repository ``.env`` or ``twpgen_config.json`` is enough for every stage.
 """
 
 from __future__ import annotations
@@ -29,15 +21,28 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-DEFAULT_MODEL = "qwen3-32b"
-DEFAULT_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-DEFAULT_TIMEOUT = 360.0
+_REPO_ROOT = Path(__file__).resolve().parents[3]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
+try:  # repository-wide configuration (single source of truth)
+    import twpgen_settings as repo_config
+except Exception:  # pragma: no cover - keeps the module usable stand-alone
+    repo_config = None  # type: ignore[assignment]
+
+DEFAULT_MODEL = repo_config.llm.model if repo_config else "qwen3-32b"
+DEFAULT_BASE_URL = (
+    repo_config.llm.base_url
+    if repo_config
+    else "https://dashscope.aliyuncs.com/compatible-mode/v1"
+)
+DEFAULT_TIMEOUT = repo_config.llm.timeout if repo_config else 360.0
 ENV_FILE_NAME = ".env"
 
 
 def project_root() -> Path:
     """Repository root, derived from this file's location."""
-    return Path(__file__).resolve().parents[3]
+    return _REPO_ROOT
 
 
 def load_env(env_file: Path | str | None = None) -> Path | None:
@@ -65,8 +70,8 @@ def load_env(env_file: Path | str | None = None) -> Path | None:
     return None
 
 
-def _repo_llm_configs() -> dict[str, Any]:
-    """Reuse the repository's LLM config module when it is importable."""
+def _article_llm_configs() -> dict[str, Any]:
+    """Reuse article_generator's own llms.toml config when it is importable."""
     try:
         article_root = project_root() / "article_generator"
         if str(article_root) not in sys.path:
@@ -114,13 +119,15 @@ def resolve_settings(
 ) -> LLMSettings:
     """Resolve settings once; every entry point calls this."""
     load_env(env_file)
-    configs = _repo_llm_configs()
+    configs = _article_llm_configs()
     basic = configs.get("basic")
+    repo_llm = repo_config.llm if repo_config else None
 
     resolved_key = _first(
         api_key,
         os.environ.get("ARTICLE_LLM_API_KEY"),
         os.environ.get("OPENAI_API_KEY"),
+        getattr(repo_llm, "api_key", None),
         getattr(basic, "api_key", None),
     )
     resolved_base = _first(
@@ -128,6 +135,7 @@ def resolve_settings(
         os.environ.get("ARTICLE_LLM_BASE_URL"),
         os.environ.get("OPENAI_BASE_URL"),
         os.environ.get("OPENAI_API_BASE"),
+        getattr(repo_llm, "base_url", None),
         getattr(basic, "endpoint", None) if basic else None,
         DEFAULT_BASE_URL,
     )
@@ -135,13 +143,19 @@ def resolve_settings(
         model,
         os.environ.get("ARTICLE_LLM_MODEL"),
         os.environ.get("TWPGEN_LLM_MODEL"),
+        getattr(repo_llm, "model", None),
         getattr(basic, "model", None) if basic else None,
         DEFAULT_MODEL,
     )
-    resolved_timeout = timeout or DEFAULT_TIMEOUT
+    resolved_timeout = timeout or getattr(repo_llm, "timeout", None) or DEFAULT_TIMEOUT
     if enable_thinking is None:
         raw = os.environ.get("ARTICLE_ENABLE_THINKING", "").strip().lower()
-        enable_thinking = raw in {"1", "true", "yes", "on"}
+        if raw:
+            enable_thinking = raw in {"1", "true", "yes", "on"}
+        elif repo_llm is not None:
+            enable_thinking = bool(repo_llm.enable_thinking)
+        else:
+            enable_thinking = False
 
     return LLMSettings(
         api_key=resolved_key,
@@ -150,6 +164,54 @@ def resolve_settings(
         timeout=resolved_timeout,
         enable_thinking=bool(enable_thinking),
     )
+
+
+# --------------------------------------------------------------------------- #
+# paths / topics / resources — all defined in the repository config
+# --------------------------------------------------------------------------- #
+def default_outline_root() -> Path | None:
+    return Path(repo_config.outline_dir) if repo_config else None
+
+
+def repo_output_dir() -> str:
+    """Configured output root (``output_dir`` in the repository config)."""
+    return str(repo_config.output_dir) if repo_config else "output"
+
+
+def default_source_root() -> Path | None:
+    return Path(repo_config.article_source_dir) if repo_config else None
+
+
+def default_topic_file() -> Path | None:
+    return Path(repo_config.topic_file) if repo_config else None
+
+
+def verb_sense_dict() -> Path | None:
+    """Path of the verb-sense dictionary used by the outline stage."""
+    return Path(repo_config.dict_file) if repo_config else None
+
+
+def topics_from_config() -> list[str]:
+    return list(repo_config.topics) if repo_config else []
+
+
+def source_dir_aliases() -> dict[str, str]:
+    """Topic → source directory alias mapping, from the repository config."""
+    return dict(getattr(repo_config, "source_dir_aliases", {}) or {}) if repo_config else {}
+
+
+def load_topics(path: Path | str | None = None) -> list[str]:
+    if repo_config is not None:
+        return repo_config.load_topics(path)
+    if path:
+        target = Path(path)
+        if target.is_file():
+            return [
+                line.strip()
+                for line in target.read_text(encoding="utf-8", errors="ignore").splitlines()
+                if line.strip() and not line.strip().startswith("#")
+            ]
+    return []
 
 
 _CLIENTS: dict[tuple[str, str, float], Any] = {}

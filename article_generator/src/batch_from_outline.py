@@ -24,6 +24,16 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from src.run_from_outline import generate_from_outline
 from src.utils.print_util import colored_print
 
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+try:  # central configuration: paths, keys, topics
+    import twpgen_settings as repo_config
+except Exception:  # pragma: no cover
+    repo_config = None
+
+DEFAULT_OUTPUT_DIR = repo_config.output_dir if repo_config else "output"
+
 
 def sanitize(name: str) -> str:
     illegal = '<>:"/\\|?*'
@@ -102,7 +112,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='OutlineArticleWriter 批量大纲报告生成器')
     parser.add_argument('--topic-dir', default='./topic',
                        help='大纲文件目录 (默认: ./topic)')
-    parser.add_argument('--output-dir', default='/workspace/TWP-Gen/output',
+    parser.add_argument('--output-dir', default=DEFAULT_OUTPUT_DIR,
                        help='输出根目录 (默认: ./output)')
     parser.add_argument('--domain', '-d', default='Industry Research',
                        choices=['Industry Research', 'Company Research', 'Comprehensive Analysis'],

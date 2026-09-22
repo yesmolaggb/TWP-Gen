@@ -150,9 +150,19 @@ python $MOD/editorial_polish.py \
 
 ## 5. 配置：一处定义，各处复用
 
-所有模型/API 设置集中在一个文件里解析：**`src/post_outline/llm_settings.py`**。
-生成、责任编辑、引用构建三个入口都调用它的 `resolve_settings()` 与 `build_client()`，
-不再各自读取环境变量。
+全仓库（检索、大纲、正文生成）共用仓库根目录的同一个配置源：
+
+| 文件 | 作用 |
+|---|---|
+| `twpgen_settings.py` | 配置中心，唯一读取与解析入口 |
+| `twpgen_config.json` | 实际取值：所有路径、API Key、模型名、主题清单、字典路径 |
+| `twpgen_config.example.json` | 无密钥模板，首次使用时复制成上面那个文件 |
+| `.env` | 只放密钥与本机覆盖项 |
+
+本模块的 `src/post_outline/llm_settings.py` 与 `article_generator/src/run_from_outline.py`、
+`batch_from_outline.py`、`agent/generate.py` 以及 `outline_generator/*` 都读取配置中心，
+不再各自写死路径或读取密钥。生成、责任编辑、引用构建三个入口统一调用
+`resolve_settings()` 与 `build_client()`。
 
 取值优先级（前者优先）：
 
@@ -165,12 +175,17 @@ python $MOD/editorial_polish.py \
    | 接口地址 | `ARTICLE_LLM_BASE_URL` → `OPENAI_BASE_URL` → `OPENAI_API_BASE` |
    | 模型 | `ARTICLE_LLM_MODEL` → `TWPGEN_LLM_MODEL` |
 
-3. 仓库已有的配置模块 `article_generator/src/config/llms_config.py`
-   （它读取 `article_generator/src/config/llms.toml`）
+3. 配置中心 `twpgen_settings.py`（取值来自仓库根目录的 `twpgen_config.json`）
 4. 模块内置默认值：模型 `qwen3-32b`、地址 `https://dashscope.aliyuncs.com/compatible-mode/v1`、超时 360 秒
 
-也就是说：**在仓库根目录的 `.env` 里写一次 key，整条流水线（检索、大纲、正文生成）都能用上**，
-无需在每个脚本里重复配置。`.env` 已在 `.gitignore` 中，不会被提交。
+也就是说：**在仓库根目录的配置里写一次，整条流水线（检索、大纲、正文生成）都能用上**，
+无需在每个脚本里重复配置。`twpgen_config.json` 与 `.env` 已在 `.gitignore` 中，不会被提交。
+
+想先看看当前解析出的路径和模型设置：
+
+```bash
+python twpgen_settings.py
+```
 
 `passage_level_citations.py`：
 

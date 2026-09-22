@@ -25,7 +25,18 @@ with open(events_file, 'r', encoding='utf-8') as f:
 
 # 使用与原项目相同的模型 - chinese-bert-wwm
 print("加载BERT模型...")
-model_path = '/workspace/model/chinese-bert-wwm'
+import sys
+from pathlib import Path as _Path
+
+_REPO_ROOT = _Path(__file__).resolve().parents[1]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+try:  # central configuration: model paths, dictionary, dataset paths
+    import twpgen_settings as _cfg
+except Exception:  # pragma: no cover
+    _cfg = None
+
+model_path = _cfg.language_model_paths.get('chinese-bert-wwm', '/workspace/model/chinese-bert-wwm') if _cfg else '/workspace/model/chinese-bert-wwm'
 tokenizer = BertTokenizer.from_pretrained(model_path)
 model = BertModel.from_pretrained(model_path)
 

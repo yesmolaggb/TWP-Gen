@@ -19,6 +19,24 @@ OutlineArticleWriter - 支持读取本地大纲文件生成报告
 
 import argparse
 import asyncio
+import sys
+from pathlib import Path
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+try:  # central configuration: paths, keys, topics
+    import twpgen_settings as repo_config
+except Exception:  # pragma: no cover
+    repo_config = None
+
+
+def _default_article_dir() -> str:
+    return repo_config.article_dir if repo_config else "output/article"
+
+
+def _default_references_dir() -> str:
+    return repo_config.references_dir if repo_config else "output/references"
 import json
 import os
 import re
@@ -546,7 +564,7 @@ def save_local_node(report: str, outline: Chapter, knowledge: List[Dict],
         save_html: 是否保存 HTML 版本
     """
     if article_dir is None:
-        article_dir = "/workspace/TWP-Gen/output/article"
+        article_dir = _default_article_dir()
 
     os.makedirs(article_dir, exist_ok=True)
 
@@ -594,13 +612,15 @@ async def generate_from_outline(
     search_path: str = None,
     topic: str = None,
     domain: str = "Industry Research",
-    output_dir: str = "/workspace/TWP-Gen/output/article",
+    output_dir: str = None,
     save_html: bool = True,
     skip_search: bool = False,
     search_depth: int = 3,
-    references_dir: str = "/workspace/TWP-Gen/output/references",
+    references_dir: str = None,
     file_base_name: str = None,
 ):
+    output_dir = output_dir or _default_article_dir()
+    references_dir = references_dir or _default_references_dir()
     """从大纲文件生成报告"""
 
     colored_print("=" * 60, color="blue")
@@ -748,10 +768,10 @@ def main():
     parser.add_argument('--domain', '-d', default='Industry Research',
                        choices=['Industry Research', 'Company Research', 'Comprehensive Analysis'],
                        help='领域类型 (默认: Industry Research)')
-    parser.add_argument('--output', '-out', default='/workspace/TWP-Gen/output/article',
-                       help='输出目录 (默认: ./example/report)')
-    parser.add_argument('--references-output', default='/workspace/TWP-Gen/output/references',
-                       help='????????')
+    parser.add_argument('--output', '-out', default=_default_article_dir(),
+                       help='文章输出目录（默认取仓库配置 article.article_dir）')
+    parser.add_argument('--references-output', default=_default_references_dir(),
+                       help='参考文献输出目录（默认取仓库配置 article.references_dir）')
     parser.add_argument('--no-html', action='store_true',
                        help='不生成HTML文件')
     parser.add_argument('--no-search', action='store_true',

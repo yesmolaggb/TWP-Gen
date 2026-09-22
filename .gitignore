@@ -34,3 +34,6 @@ __pycache__/
 .env
 
 /knowledge_collector/result/
+
+# Local runtime configuration (copy twpgen_config.example.json instead)
+/twpgen_config.json

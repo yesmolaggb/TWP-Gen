@@ -271,7 +271,7 @@ def process_corpus(corpus, output_file, checkpoint_file=None, start_idx=0, max_s
 def test_extraction():
     """测试事件抽取功能（仅使用项目内句子）"""
     try:
-        corpus_path = '/workspace/TWP-Gen/dataset/DuEE/parsed_corpus.pk'
+        corpus_path = project_args.duee_parsed_corpus
         if not os.path.exists(corpus_path):
             print(f"错误：语料库文件 {corpus_path} 不存在")
             return
@@ -303,7 +303,7 @@ def test_extraction():
 def process_five_sentences():
     """处理五个项目内句子并保存结果"""
     print("开始处理五个句子...")
-    corpus_path = '/workspace/TWP-Gen/dataset/DuEE/parsed_corpus.pk'
+    corpus_path = project_args.duee_parsed_corpus
     if not os.path.exists(corpus_path):
         print(f"错误：语料库文件 {corpus_path} 不存在")
         return
@@ -361,14 +361,14 @@ def process_five_sentences():
     print(f"使用基本结构事件数: {stats['fallback_events']} ({stats['fallback_events']/stats['total_events']*100:.1f}% 失败率)")
     print(f"API错误事件数: {stats['api_errors']} ({stats['api_errors']/stats['total_events']*100:.1f}% 错误率)")
     
-    output_file = '/workspace/TWP-Gen/dataset/DuEE/project_test_events.json'
+    output_file = project_args.duee_projection_json
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(results, f, ensure_ascii=False, indent=2)
     
     print(f"\n已保存结果到 {output_file}")
     
     # 保存详细的日志文件
-    log_file = '/workspace/TWP-Gen/dataset/DuEE/extraction_log.json'
+    log_file = project_args.duee_extraction_log
     with open(log_file, 'w', encoding='utf-8') as f:
         json.dump({
             "results": results,

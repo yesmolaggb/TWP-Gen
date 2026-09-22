@@ -19,6 +19,21 @@ from src.tools.md2html import markdown2html
 
 logger = logging.getLogger(__name__)
 
+try:  # central configuration: paths, keys, topics
+    import sys as _sys
+    from pathlib import Path as _Path
+
+    _REPO_ROOT = _Path(__file__).resolve().parents[3]
+    if str(_REPO_ROOT) not in _sys.path:
+        _sys.path.insert(0, str(_REPO_ROOT))
+    import twpgen_settings as _repo_config
+
+    _DEFAULT_ARTICLE_DIR = _repo_config.article_dir
+    _DEFAULT_REFERENCES_DIR = _repo_config.references_dir
+except Exception:  # pragma: no cover
+    _DEFAULT_ARTICLE_DIR = "output/article"
+    _DEFAULT_REFERENCES_DIR = "output/references"
+
 def generate_node(state: ReportState):
 
     outline = state.get("outline")
@@ -114,8 +129,8 @@ def save_local_node(state: ReportState, config: RunnableConfig):
     Save article and references under /workspace/TWP-Gen/output by default.
     """
     configurable = config.get("configurable", {})
-    article_dir = configurable.get("save_path", "/workspace/TWP-Gen/output/article")
-    references_dir = configurable.get("references_path", "/workspace/TWP-Gen/output/references")
+    article_dir = configurable.get("save_path", _DEFAULT_ARTICLE_DIR)
+    references_dir = configurable.get("references_path", _DEFAULT_REFERENCES_DIR)
     file_base = f"report_{str(int(time.time() * 1000))}"
     try:
         os.makedirs(article_dir, exist_ok=True)

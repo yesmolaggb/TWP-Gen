@@ -16,6 +16,17 @@ from transformers import BertForMaskedLM, BertModel, BertTokenizer
 from encode_contextual_features import process_sentence
 from util import util
 
+import sys
+from pathlib import Path as _Path
+
+_REPO_ROOT = _Path(__file__).resolve().parents[1]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+try:  # central configuration: model paths, dictionary, dataset paths
+    import twpgen_settings as _cfg
+except Exception:  # pragma: no cover
+    _cfg = None
+
 
 class GAEDataLoader:
     def __init__(
@@ -128,7 +139,9 @@ class GAEDataLoader:
                     )
                 )
                 print("loading Transformer model")
-                pretrained_weights = "/workspace/model/chinese-macbert-base"
+                pretrained_weights = _cfg.language_model_paths.get(
+                    "macbert", "/workspace/model/chinese-macbert-base"
+                ) if _cfg else "/workspace/model/chinese-macbert-base"
                 pretrained_weights_path = Path(pretrained_weights)
                 model_class, tokenizer_class = BertForMaskedLM, BertTokenizer
 
