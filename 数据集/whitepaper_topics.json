@@ -1,0 +1,315 @@
+{
+  "dataset": "TWP-Gen technical white paper generation tasks",
+  "version": "1.0",
+  "language": "zh",
+  "num_topics": 60,
+  "num_domains": 8,
+  "task": "Given a topic, generate a complete Chinese technical white paper.",
+  "fields": {
+    "id": "Task identifier",
+    "title": "Input topic used as the generation prompt",
+    "domain": "Domain label used only for grouping and reporting"
+  },
+  "topics": [
+    {
+      "id": "T01",
+      "title": "5G核心网安全架构及关键技术白皮书",
+      "domain": "Mobile communications (5G/6G)"
+    },
+    {
+      "id": "T02",
+      "title": "5G行业专网技术白皮书",
+      "domain": "Mobile communications (5G/6G)"
+    },
+    {
+      "id": "T03",
+      "title": "6G传输技术白皮书",
+      "domain": "Mobile communications (5G/6G)"
+    },
+    {
+      "id": "T04",
+      "title": "6G数字孪生网络安全技术白皮书",
+      "domain": "Mobile communications (5G/6G)"
+    },
+    {
+      "id": "T05",
+      "title": "6G无源物联网定位技术白皮书",
+      "domain": "Energy and sustainable infrastructure"
+    },
+    {
+      "id": "T06",
+      "title": "6G网络内生AI技术白皮书",
+      "domain": "AI and intelligent computing"
+    },
+    {
+      "id": "T07",
+      "title": "6G网络协作通感技术白皮书",
+      "domain": "Mobile communications (5G/6G)"
+    },
+    {
+      "id": "T08",
+      "title": "6G通感算智融合原生基座技术白皮书",
+      "domain": "Mobile communications (5G/6G)"
+    },
+    {
+      "id": "T09",
+      "title": "AI驱动增长-腾讯云营销技术白皮书",
+      "domain": "Industrial and sector applications"
+    },
+    {
+      "id": "T10",
+      "title": "Atlas 300T Pro训练卡技术白皮书",
+      "domain": "AI and intelligent computing"
+    },
+    {
+      "id": "T11",
+      "title": "Atlas 900 RCK A2计算节点技术白皮书（AICC场景）",
+      "domain": "AI and intelligent computing"
+    },
+    {
+      "id": "T12",
+      "title": "BFD技术白皮书",
+      "domain": "Networking and Internet protocols"
+    },
+    {
+      "id": "T13",
+      "title": "Context技术白皮书",
+      "domain": "AI and intelligent computing"
+    },
+    {
+      "id": "T14",
+      "title": "EMS弹性内存存储技术白皮书",
+      "domain": "Cloud, data center and storage"
+    },
+    {
+      "id": "T15",
+      "title": "HDM技术白皮书",
+      "domain": "Multimedia, sensing and XR"
+    },
+    {
+      "id": "T16",
+      "title": "HarmonyOS安全技术白皮书",
+      "domain": "Cybersecurity and trust"
+    },
+    {
+      "id": "T17",
+      "title": "HiSec Endpoint智能终端安全系统技术白皮书",
+      "domain": "Cybersecurity and trust"
+    },
+    {
+      "id": "T18",
+      "title": "IPsec技术白皮书",
+      "domain": "Cybersecurity and trust"
+    },
+    {
+      "id": "T19",
+      "title": "IPv6技术白皮书",
+      "domain": "Networking and Internet protocols"
+    },
+    {
+      "id": "T20",
+      "title": "IP网络未来演进技术白皮书——服务感知网络（SAN）",
+      "domain": "Networking and Internet protocols"
+    },
+    {
+      "id": "T21",
+      "title": "MSR6技术白皮书",
+      "domain": "Networking and Internet protocols"
+    },
+    {
+      "id": "T22",
+      "title": "MagicOS安全技术白皮书",
+      "domain": "Cybersecurity and trust"
+    },
+    {
+      "id": "T23",
+      "title": "NAT技术白皮书",
+      "domain": "Networking and Internet protocols"
+    },
+    {
+      "id": "T24",
+      "title": "NetEngine AR 广域网优化技术白皮书",
+      "domain": "Networking and Internet protocols"
+    },
+    {
+      "id": "T25",
+      "title": "Serverless架构数据库技术白皮书",
+      "domain": "Cloud, data center and storage"
+    },
+    {
+      "id": "T26",
+      "title": "URL过滤技术白皮书",
+      "domain": "Cybersecurity and trust"
+    },
+    {
+      "id": "T27",
+      "title": "VXLAN技术白皮书",
+      "domain": "Networking and Internet protocols"
+    },
+    {
+      "id": "T28",
+      "title": "Wi-Fi 6（802.11ax）技术白皮书",
+      "domain": "Networking and Internet protocols"
+    },
+    {
+      "id": "T29",
+      "title": "iMaster NCE-Fabric技术白皮书",
+      "domain": "Networking and Internet protocols"
+    },
+    {
+      "id": "T30",
+      "title": "三维沉浸视频技术白皮书",
+      "domain": "Multimedia, sensing and XR"
+    },
+    {
+      "id": "T31",
+      "title": "中国移动“敏捷网络”技术白皮书",
+      "domain": "Networking and Internet protocols"
+    },
+    {
+      "id": "T32",
+      "title": "中国芯片设计云技术白皮书",
+      "domain": "Cloud, data center and storage"
+    },
+    {
+      "id": "T33",
+      "title": "云AI视频技术白皮书",
+      "domain": "Multimedia, sensing and XR"
+    },
+    {
+      "id": "T34",
+      "title": "云化5G专网技术白皮书",
+      "domain": "Mobile communications (5G/6G)"
+    },
+    {
+      "id": "T35",
+      "title": "井下新一代网络技术白皮书",
+      "domain": "Industrial and sector applications"
+    },
+    {
+      "id": "T36",
+      "title": "传送网节能减排技术白皮书",
+      "domain": "Energy and sustainable infrastructure"
+    },
+    {
+      "id": "T37",
+      "title": "伯努利融合型机柜技术白皮书",
+      "domain": "Energy and sustainable infrastructure"
+    },
+    {
+      "id": "T38",
+      "title": "先进感知技术白皮书",
+      "domain": "Industrial and sector applications"
+    },
+    {
+      "id": "T39",
+      "title": "全光校园网络解决方案技术白皮书",
+      "domain": "Networking and Internet protocols"
+    },
+    {
+      "id": "T40",
+      "title": "具身智能操作系统技术白皮书",
+      "domain": "AI and intelligent computing"
+    },
+    {
+      "id": "T41",
+      "title": "分布式智算中心无损网络技术白皮书",
+      "domain": "AI and intelligent computing"
+    },
+    {
+      "id": "T42",
+      "title": "医院通用人工智能平台技术白皮书",
+      "domain": "Industrial and sector applications"
+    },
+    {
+      "id": "T43",
+      "title": "华为园区网络Wi-Fi 7(802.11be)技术白皮书",
+      "domain": "Networking and Internet protocols"
+    },
+    {
+      "id": "T44",
+      "title": "华为园区网络Wi-Fi 7零漫游技术白皮书",
+      "domain": "Networking and Internet protocols"
+    },
+    {
+      "id": "T45",
+      "title": "华为星河AI园区全域安全技术白皮书",
+      "domain": "Cybersecurity and trust"
+    },
+    {
+      "id": "T46",
+      "title": "基于智能体的校园自智网络技术白皮书",
+      "domain": "AI and intelligent computing"
+    },
+    {
+      "id": "T47",
+      "title": "家庭Wi-Fi网络技术白皮书",
+      "domain": "Networking and Internet protocols"
+    },
+    {
+      "id": "T48",
+      "title": "宽带核心网（BNC）技术白皮书",
+      "domain": "Networking and Internet protocols"
+    },
+    {
+      "id": "T49",
+      "title": "开放解构节点（ODS）系统架构技术白皮书",
+      "domain": "Cloud, data center and storage"
+    },
+    {
+      "id": "T50",
+      "title": "微服务化vBRAS技术白皮书",
+      "domain": "Networking and Internet protocols"
+    },
+    {
+      "id": "T51",
+      "title": "新一代智算中心网络管控运维技术白皮书",
+      "domain": "AI and intelligent computing"
+    },
+    {
+      "id": "T52",
+      "title": "智能安全策略技术白皮书",
+      "domain": "Cybersecurity and trust"
+    },
+    {
+      "id": "T53",
+      "title": "算力运维体系技术白皮书",
+      "domain": "AI and intelligent computing"
+    },
+    {
+      "id": "T54",
+      "title": "虚拟汽车技术白皮书",
+      "domain": "Industrial and sector applications"
+    },
+    {
+      "id": "T55",
+      "title": "视联网云化技术白皮书",
+      "domain": "Multimedia, sensing and XR"
+    },
+    {
+      "id": "T56",
+      "title": "负载均衡技术白皮书",
+      "domain": "Cloud, data center and storage"
+    },
+    {
+      "id": "T57",
+      "title": "超节点技术白皮书",
+      "domain": "AI and intelligent computing"
+    },
+    {
+      "id": "T58",
+      "title": "轻质屋面光伏系统安全技术白皮书",
+      "domain": "Energy and sustainable infrastructure"
+    },
+    {
+      "id": "T59",
+      "title": "酒业数智供应链发展技术白皮书",
+      "domain": "Industrial and sector applications"
+    },
+    {
+      "id": "T60",
+      "title": "面向数据迁移的超算快线技术白皮书",
+      "domain": "AI and intelligent computing"
+    }
+  ]
+}

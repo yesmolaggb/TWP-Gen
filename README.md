@@ -64,6 +64,23 @@ so the shell stages and the Python stages never disagree about paths or models.
 
 Prepare your input under the configured dataset root, defaulting to `./dataset/<topic>/`. The open-source package intentionally does not include private corpora, generated `.pk` features, checkpoints, or large dictionaries.
 
+## Dataset
+
+The 60 generation tasks used in the paper and the full evaluation protocol live in
+`数据集/`:
+
+| File | What it is |
+|---|---|
+| `数据集/whitepaper_topics.json` | The 60 tasks with `id`, `title` and `domain` |
+| `数据集/whitepaper_topics.txt` | The same titles as a plain one-per-line list |
+| `数据集/evaluation_method.md` | The evaluation protocol in prose |
+| `数据集/evaluation_method.json` | The same protocol in machine-readable form |
+| `数据集/whitepaper_domain_classification.csv` | Domain label per task |
+| `数据集/whitepaper_domain_summary.csv` | Domain counts and shares |
+
+Their locations are part of the central configuration, so any stage can read them
+through `twpgen_settings.py` (`topic_dataset_file`, `evaluation_protocol_file`, ...).
+
 ## Project Layout
 
 TWP-Gen is organized as a three-stage pipeline:

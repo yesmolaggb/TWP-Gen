@@ -50,6 +50,14 @@
     "verb_sense_dict": "./resources/verb_sense_dict_w_features.json"
   },
 
+  "evaluation_dataset": {
+    "dataset_dir": "./数据集",
+    "topics_json": "./数据集/whitepaper_topics.json",
+    "topics_txt": "./数据集/whitepaper_topics.txt",
+    "protocol_json": "./数据集/evaluation_method.json",
+    "protocol_md": "./数据集/evaluation_method.md"
+  },
+
   "models": {
     "model_root": "/workspace/model",
     "language_models": {

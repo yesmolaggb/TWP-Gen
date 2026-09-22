@@ -163,6 +163,31 @@ article_source_dir = path_setting(
     ("TWPGEN_ARTICLE_SOURCE_DIR",), "paths.article_source_dir", "./knowledge_collector/result"
 )
 
+# Evaluation dataset: the 60 generation tasks and the evaluation protocol.
+evaluation_dataset_dir = path_setting(
+    ("TWPGEN_EVAL_DATASET_DIR",), "evaluation_dataset.dataset_dir", "./数据集"
+)
+topic_dataset_file = path_setting(
+    ("TWPGEN_TOPIC_DATASET",),
+    "evaluation_dataset.topics_json",
+    "./数据集/whitepaper_topics.json",
+)
+topic_dataset_txt = path_setting(
+    ("TWPGEN_TOPIC_DATASET_TXT",),
+    "evaluation_dataset.topics_txt",
+    "./数据集/whitepaper_topics.txt",
+)
+evaluation_protocol_file = path_setting(
+    ("TWPGEN_EVAL_PROTOCOL",),
+    "evaluation_dataset.protocol_json",
+    "./数据集/evaluation_method.json",
+)
+evaluation_protocol_doc = path_setting(
+    ("TWPGEN_EVAL_PROTOCOL_MD",),
+    "evaluation_dataset.protocol_md",
+    "./数据集/evaluation_method.md",
+)
+
 
 # --------------------------------------------------------------------------- #
 # dictionary and derived resource files
@@ -360,6 +385,11 @@ def as_dict() -> dict[str, Any]:
         "topic_file": topic_file,
         "outline_dir": outline_dir,
         "article_source_dir": article_source_dir,
+        "evaluation_dataset_dir": evaluation_dataset_dir,
+        "topic_dataset_file": topic_dataset_file,
+        "topic_dataset_txt": topic_dataset_txt,
+        "evaluation_protocol_file": evaluation_protocol_file,
+        "evaluation_protocol_doc": evaluation_protocol_doc,
         "dict_file": dict_file,
         "model_root": model_root,
         "language_model": lm_type,
@@ -386,6 +416,11 @@ def export_env() -> str:
         "TWPGEN_TOPIC_FILE": topic_file,
         "TWPGEN_OUTLINE_DIR": outline_dir,
         "TWPGEN_ARTICLE_SOURCE_DIR": article_source_dir,
+        "TWPGEN_EVAL_DATASET_DIR": evaluation_dataset_dir,
+        "TWPGEN_TOPIC_DATASET": topic_dataset_file,
+        "TWPGEN_TOPIC_DATASET_TXT": topic_dataset_txt,
+        "TWPGEN_EVAL_PROTOCOL": evaluation_protocol_file,
+        "TWPGEN_EVAL_PROTOCOL_MD": evaluation_protocol_doc,
         "TWPGEN_VERB_SENSE_DICT": dict_file,
         "TWPGEN_MODEL_ROOT": model_root,
         "TWPGEN_DOCGEN_ENV": docgen_env,
