@@ -31,8 +31,8 @@ try:  # central configuration: paths, keys, topics
     _DEFAULT_ARTICLE_DIR = _repo_config.article_dir
     _DEFAULT_REFERENCES_DIR = _repo_config.references_dir
 except Exception:  # pragma: no cover
-    _DEFAULT_ARTICLE_DIR = "output/article"
-    _DEFAULT_REFERENCES_DIR = "output/references"
+    _DEFAULT_ARTICLE_DIR = "output/post_outline/article"
+    _DEFAULT_REFERENCES_DIR = "output/post_outline/references"
 
 def generate_node(state: ReportState):
 
@@ -126,7 +126,7 @@ def save_report_local(state: ReportState, config:RunnableConfig):
 
 def save_local_node(state: ReportState, config: RunnableConfig):
     """
-    Save article and references under /workspace/TWP-Gen/output by default.
+    Save the article and references under the configured output directory.
     """
     configurable = config.get("configurable", {})
     article_dir = configurable.get("save_path", _DEFAULT_ARTICLE_DIR)

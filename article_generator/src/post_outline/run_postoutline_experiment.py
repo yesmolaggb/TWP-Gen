@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Evidence-grounded article generation for the fixed ten-topic experiment.
+"""Evidence-grounded article generation from TWP-Gen outlines.
 
 This script intentionally starts from already generated outline files. It does not
 modify retrieval, clustering, taxonomy mapping, or outline induction. The only
@@ -71,6 +71,7 @@ SYSTEM_PROMPT = """你是一名资深的中文技术白皮书作者，面向专�
 15. 篇幅要求：每个一级章节的正文不少于 1500 字，证据充分时写到 2000–2800 字；每个三级小节 350–700 字。宁可写长一些，也不要因为概括而丢掉证据里的机制与参数。
 16. 每一个三级小节只讨论一个技术问题，段落之间要有承接句说明“为什么接着说这件事”，不要出现没有过渡的主题跳转。
 17. 不要出现连续三句可核查技术论述都没有引用的情况；同时避免每句都挂引用导致正文被标记淹没。
+18. 避免模板化连接词和空泛套话：禁止使用“综上所述”“总而言之”“总的来说”作为章节或段落收束；尽量少用“此外”“同时”“首先”“其次”“最后”，每千字中“此外”和“同时”合计不超过 1 次。需要衔接时，优先写具体对象、机制或章节主题，例如“在切片隔离方面”“从部署角度看”，不要用无信息量的模板过渡。
 """
 
 
@@ -214,7 +215,44 @@ def extract_metadata(text: str, path: Path, ref_id: int) -> SourceDocument:
     )
 
 
+def load_collector_report(path: Path) -> list[SourceDocument]:
+    """Read the text report written by ``collect_references.py``.
+
+    The collector stores one report per topic with repeated ``[文章 N]`` blocks.
+    Supporting this format keeps the one-command pipeline on the same
+    citation-grounded generation path as the documented step-by-step workflow.
+    """
+    text = path.read_text(encoding="utf-8", errors="ignore")
+    header = re.compile(r"^\[文章\s+\d+\]\s*(.*?)\s*\[[^\]]+\]\s*$", re.M)
+    matches = list(header.finditer(text))
+    sources: list[SourceDocument] = []
+    for index, match in enumerate(matches, 1):
+        end = matches[index].start() if index < len(matches) else len(text)
+        block = text[match.end() : end].strip()
+        url_match = re.search(r"^URL:\s*(\S+)\s*$", block, flags=re.M)
+        body_match = re.search(r"^正文：\s*\n([\s\S]*)$", block, flags=re.M)
+        body = (body_match.group(1) if body_match else block).strip()
+        if not body or body == "抓取失败或内容为空":
+            continue
+        sources.append(
+            SourceDocument(
+                ref_id=len(sources) + 1,
+                source_id=f"collector-{index}",
+                title=match.group(1).strip() or f"Source {index}",
+                url=url_match.group(1).strip() if url_match else "",
+                relevance=0.0,
+                body=body,
+                path=str(path),
+            )
+        )
+    if not sources:
+        raise FileNotFoundError(f"No source blocks found in collector report {path}")
+    return sources
+
+
 def load_sources(source_dir: Path) -> list[SourceDocument]:
+    if source_dir.is_file():
+        return load_collector_report(source_dir)
     files = sorted(source_dir.glob("*.md"))
     sources = [
         extract_metadata(path.read_text(encoding="utf-8", errors="ignore"), path, index)
@@ -706,6 +744,11 @@ def call_model(
     enable_thinking: bool,
     retries: int = 4,
 ) -> str:
+    # DashScope exposes a smaller output limit for the 14B backbone than for
+    # the 32B backbone.  Clamp before every call so section generation,
+    # fact-checking and global editing all stay within the model contract.
+    if "14b" in model.lower():
+        max_tokens = min(max_tokens, 8192)
     last_error: Exception | None = None
     for attempt in range(1, retries + 1):
         try:
@@ -1254,9 +1297,23 @@ def locate_source_dir(source_root: Path, topic: str) -> Path:
     candidates = sorted(source_root.glob(f"*_{alias}"))
     if not candidates:
         candidates = [path for path in source_root.iterdir() if path.is_dir() and alias in path.name]
-    if len(candidates) != 1:
-        raise FileNotFoundError(f"Expected one source directory for {topic}, found {candidates}")
-    return candidates[0] / "sources"
+    if len(candidates) == 1:
+        source_dir = candidates[0] / "sources"
+        if source_dir.is_dir():
+            return source_dir
+
+    # ``knowledge_collector/collect_references.py`` writes ``<topic>.txt``.
+    report_candidates = [
+        source_root / f"{safe_filename(alias)}.txt",
+        source_root / f"{safe_filename(topic)}.txt",
+    ]
+    for report in report_candidates:
+        if report.is_file():
+            return report
+    raise FileNotFoundError(
+        f"No source package found for {topic}; checked directories {candidates} "
+        f"and reports {report_candidates}"
+    )
 
 
 def generate_topic(
@@ -1490,7 +1547,12 @@ def main() -> int:
     parser.add_argument("--api-key", default=None, help="overrides OPENAI_API_KEY")
     parser.add_argument("--variant", choices=("baseline", "optimized"), default="optimized")
     parser.add_argument("--start-index", type=int, default=0)
-    parser.add_argument("--limit", type=int, default=10)
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=0,
+        help="maximum number of topics after --start-index (0 = all)",
+    )
     parser.add_argument("--topic", action="append", default=[])
     parser.add_argument("--no-thinking", action="store_true")
     parser.add_argument("--overwrite", action="store_true")
@@ -1507,11 +1569,12 @@ def main() -> int:
     model = settings.model
     planner_model = args.planner_model or settings.model
 
-    selected_topics = (
-        list(args.topic)
-        if args.topic
-        else list(TOPICS[args.start_index : args.start_index + args.limit])
-    )
+    if args.topic:
+        selected_topics = list(args.topic)
+    else:
+        selected_topics = list(TOPICS[args.start_index :])
+        if args.limit > 0:
+            selected_topics = selected_topics[: args.limit]
     args.output_root.mkdir(parents=True, exist_ok=True)
     run_manifest = []
     started = time.time()

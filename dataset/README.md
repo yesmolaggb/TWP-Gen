@@ -31,9 +31,10 @@ complete white paper from that title alone. The 60 titles span eight domains:
 | Energy and sustainable infrastructure | 4 | 6.7% |
 
 The domain label is only used for grouping and reporting; it is never given to the
-generator. The documents themselves are used to analyse section structure and to
-serve as the real-world reference point of the task. Because the pipeline is fully
-unsupervised, no training, validation or test split is defined.
+generator or evaluator. The task file contains titles and domain labels only, and
+the evaluation protocol does not provide a reference white paper to the evaluator.
+Because the pipeline is unsupervised, no training, validation or test split is
+defined.
 
 This evaluation set is separate from the larger 892-document corpus that is used
 only to derive the white-paper section taxonomy.
@@ -55,7 +56,9 @@ Scoring a directory of generated white papers:
 
 ```bash
 python dataset/evaluation/evaluate_topics.py \
-  --article-dir output/article \
+  --article-dir    output/post_outline/article \
+  --reference-dir  output/post_outline/references \
+  --diagnostic-dir output/post_outline/diagnostics \
   --output      output/evaluation/scores.json \
   --repeats     3
 ```

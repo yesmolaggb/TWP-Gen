@@ -36,7 +36,7 @@ try:  # central configuration: model paths, dictionary, dataset paths
 except Exception:  # pragma: no cover
     _cfg = None
 
-model_path = _cfg.language_model_paths.get('chinese-bert-wwm', '/workspace/model/chinese-bert-wwm') if _cfg else '/workspace/model/chinese-bert-wwm'
+model_path = _cfg.language_model_paths.get('chinese-bert-wwm', './models/chinese-bert-wwm') if _cfg else './models/chinese-bert-wwm'
 tokenizer = BertTokenizer.from_pretrained(model_path)
 model = BertModel.from_pretrained(model_path)
 

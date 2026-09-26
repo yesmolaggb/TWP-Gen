@@ -69,7 +69,7 @@ def _get_client(llm_type: LLMType) -> OpenAI:
     except KeyError as e:
         raise KeyError(f"LLM configuration for '{llm_type}' not found") from e
 
-    # Match /workspace/testthink.py: use the OpenAI-compatible vLLM endpoint directly.
+    # Use the configured OpenAI-compatible endpoint directly.
     client = OpenAI(base_url=llm_config.endpoint, api_key=llm_config.api_key)
     _client_cache[llm_type] = client
     return client

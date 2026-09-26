@@ -34,9 +34,9 @@ def _model_dir(name: str, default: str) -> str:
 
 
 MODELS = {
-    'blu': (BertForMaskedLM, BertTokenizer, _model_dir('blu', '/workspace/model/bert-large-uncased-whole-word-masking')),
-    'macbert': (BertForMaskedLM, BertTokenizer, _model_dir('macbert', '/workspace/model/chinese-macbert-base')),
-    'chinese-bert-wwm': (BertForMaskedLM, BertTokenizer, _model_dir('chinese-bert-wwm', '/workspace/model/chinese-bert-wwm')),
+    'blu': (BertForMaskedLM, BertTokenizer, _model_dir('blu', './models/bert-large-uncased-whole-word-masking')),
+    'macbert': (BertForMaskedLM, BertTokenizer, _model_dir('macbert', './models/chinese-macbert-base')),
+    'chinese-bert-wwm': (BertForMaskedLM, BertTokenizer, _model_dir('chinese-bert-wwm', './models/chinese-bert-wwm')),
 }
 
 def tensor_to_numpy(tensor):
@@ -484,7 +484,7 @@ def main(input_file,
 if __name__ == '__main__':
     # python encode_contextual_features.py --gpu_id 7
     # python encode_contextual_features.py --input_file ./2659docs_cleaned_parsed_svo_0415.pk --gpu_id 2
-    # python encode_contextual_features.py --lm_type macbert --input_file ./2659docs_cleaned_parsed_svo_0415.pk --dict_file /workspace/TWP-Gen/resources/verb_sense_dict.json --gpu_id 0
+    # python encode_contextual_features.py --lm_type macbert --input_file ./parsed_svo.pk --dict_file ./resources/verb_sense_dict.json --gpu_id 0
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--input_file", default="./20docs_cleaned_parsed_svo_0415.pk")

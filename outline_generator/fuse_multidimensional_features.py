@@ -35,9 +35,9 @@ def _model_dir(name: str, default: str) -> str:
 
 
 MODELS = {
-    'blu': (BertForMaskedLM, BertTokenizer, _model_dir('blu', '/workspace/model/bert-large-uncased-whole-word-masking')),
-    'macbert': (BertForMaskedLM, BertTokenizer, _model_dir('macbert', '/workspace/model/chinese-macbert-base')),
-    'chinese-bert-wwm': (BertForMaskedLM, BertTokenizer, _model_dir('chinese-bert-wwm', '/workspace/model/chinese-bert-wwm')),
+    'blu': (BertForMaskedLM, BertTokenizer, _model_dir('blu', './models/bert-large-uncased-whole-word-masking')),
+    'macbert': (BertForMaskedLM, BertTokenizer, _model_dir('macbert', './models/chinese-macbert-base')),
+    'chinese-bert-wwm': (BertForMaskedLM, BertTokenizer, _model_dir('chinese-bert-wwm', './models/chinese-bert-wwm')),
 }
 
 

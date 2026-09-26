@@ -334,7 +334,7 @@ is_topic_processed() {
      -f "$topic_dir/parsed_corpus.pk"    &&
      -f "$topic_dir/po_tuple_features_all_svos.pk" &&
      -f "$topic_dir/outline.txt"         &&
-     -f "$TWPGEN_ROOT/output/article/$sname.md" ]]
+     -f "$TWPGEN_ROOT/output/post_outline/article/$sname.md" ]]
 }
 
 # ── 针对单个题目，询问是否从断点继续 ──
@@ -408,17 +408,18 @@ activate_env "${TWPGEN_PIPELINE_ENV:-$TWPGEN_ROOT/.venv}"
   run_python_step "final_generate_whitepaper_outline" "阶段：生成大纲" "final_generate_whitepaper_outline.log" \
     "$OUTLINE_ROOT/generate_whitepaper_outline.py"
 
-  # Step 3: Article generation from the generated outline
-activate_env "${TWPGEN_ARTICLE_ENV:-${TWPGEN_PIPELINE_ENV:-$TWPGEN_ROOT/.venv}}"
+  # Step 3: Evidence-grounded article generation from the generated outline.
+  # Use the same citation-bound path documented in the README so the one-command
+  # runner and the step-by-step workflow execute the same implementation.
+  activate_env "${TWPGEN_ARTICLE_ENV:-${TWPGEN_PIPELINE_ENV:-$TWPGEN_ROOT/.venv}}"
   cd "$ARTICLE_ROOT"
-  mkdir -p "$TWPGEN_ROOT/output/article" "$TWPGEN_ROOT/output/references"
+  mkdir -p "$TWPGEN_ROOT/output/post_outline"
   run_python_step "final_generate_article" "Article generation from outline" "final_generate_article.log" \
-    "$ARTICLE_ROOT/src/run_from_outline.py" \
-    --outline "$DATASET_BASE_DIR/$TWPGEN_DATASET/outline.txt" \
-    --topic "$topic" \
-    --no-search \
-    --output "$TWPGEN_ROOT/output/article" \
-    --references-output "$TWPGEN_ROOT/output/references"
+    "$ARTICLE_ROOT/src/post_outline/run_postoutline_experiment.py" \
+    --outline-root "$DATASET_BASE_DIR" \
+    --source-root "$TWPGEN_COLLECTOR_RESULT_DIR" \
+    --output-root "$TWPGEN_ROOT/output/post_outline" \
+    --topic "$topic"
 
   clear_all_state
   printf '题目完成：%s\n' "$topic"

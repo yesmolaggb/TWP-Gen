@@ -29,8 +29,9 @@ Feature Fusion** 的评估侧资源。
 | 多媒体、感知与 XR | 4 | 6.7% |
 | 能源与可持续基础设施 | 4 | 6.7% |
 
-领域标签只用于分组和统计，不会提供给生成模型。白皮书原文用于分析章节结构，并作为
-任务真实场景的参照。由于整个流程是无监督的，因此不划分训练集、验证集和测试集。
+领域标签只用于分组和统计，不会提供给生成模型或评价模型。任务文件仅包含题目与领域
+标签，评价过程中也不会向评价模型提供参考白皮书。由于整个流程是无监督的，因此不划分
+训练集、验证集和测试集。
 
 本评估集与用于归纳章节分类体系的 892 篇文档语料是分开的。
 
@@ -51,7 +52,9 @@ Feature Fusion** 的评估侧资源。
 
 ```bash
 python dataset/evaluation/evaluate_topics.py \
-  --article-dir output/article \
+  --article-dir    output/post_outline/article \
+  --reference-dir  output/post_outline/references \
+  --diagnostic-dir output/post_outline/diagnostics \
   --output      output/evaluation/scores.json \
   --repeats     3
 ```

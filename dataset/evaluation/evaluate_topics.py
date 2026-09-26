@@ -3,7 +3,7 @@
 Example
 -------
     python dataset/evaluation/evaluate_topics.py \
-        --article-dir output/article \
+        --article-dir output/post_outline/article \
         --output      output/evaluation/scores.json \
         --repeats     3
 
@@ -40,6 +40,24 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         type=Path,
         required=True,
         help="directory holding the generated white papers (*.md)",
+    )
+    parser.add_argument(
+        "--reference-dir",
+        type=Path,
+        default=None,
+        help=(
+            "per-document reference JSON directory; defaults to the sibling "
+            "'references' directory when it exists"
+        ),
+    )
+    parser.add_argument(
+        "--diagnostic-dir",
+        type=Path,
+        default=None,
+        help=(
+            "per-document citation diagnostic JSON directory; defaults to the "
+            "sibling 'diagnostics' directory when it exists"
+        ),
     )
     parser.add_argument(
         "--output",
@@ -99,6 +117,11 @@ def serialize(document, method_names: list[str]) -> dict:
     return {
         "topic": document.topic,
         "article_file": str(document.path),
+        "reference_file": str(document.reference_path) if document.reference_path else None,
+        "diagnostic_file": str(document.diagnostic_path) if document.diagnostic_path else None,
+        "evidence_package_available": bool(
+            document.reference_path and document.reference_path.is_file()
+        ),
         "method_names_removed": method_names,
         "status": "success",
         "scores": {
@@ -138,8 +161,21 @@ def main(argv: list[str] | None = None) -> int:
     output = args.output or (default_results_dir() / "scores.json")
     output.parent.mkdir(parents=True, exist_ok=True)
 
+    reference_dir = args.reference_dir
+    if reference_dir is None and (article_dir.parent / "references").is_dir():
+        reference_dir = article_dir.parent / "references"
+    diagnostic_dir = args.diagnostic_dir
+    if diagnostic_dir is None and (article_dir.parent / "diagnostics").is_dir():
+        diagnostic_dir = article_dir.parent / "diagnostics"
+
     documents = randomly_reorder(
-        load_documents(article_dir, DEFAULT_METHOD_NAMES), seed=args.seed
+        load_documents(
+            article_dir,
+            DEFAULT_METHOD_NAMES,
+            reference_dir=reference_dir,
+            diagnostic_dir=diagnostic_dir,
+        ),
+        seed=args.seed,
     )
     if args.limit:
         documents = documents[: args.limit]
@@ -159,9 +195,14 @@ def main(argv: list[str] | None = None) -> int:
             continue
         print(f"[{index}/{len(documents)}] scoring: {document.topic}")
         scored = evaluator.score_document(
-            document.topic, document.text, repeats=args.repeats
+            document.topic,
+            document.text,
+            repeats=args.repeats,
+            evidence=document.evidence,
         )
         scored.path = document.path
+        scored.reference_path = document.reference_path
+        scored.diagnostic_path = document.diagnostic_path
         record = serialize(scored, DEFAULT_METHOD_NAMES)
         records.append(record)
         output.write_text(

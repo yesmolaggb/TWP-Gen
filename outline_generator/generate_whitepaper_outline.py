@@ -50,16 +50,26 @@ WHITEPAPER_CHAPTERS = [
     },
     {
         "id": 3,
-        "title": "总体设计",
-        "keywords": "方案、总体方案、方案概述、架构、总体架构、模块组成、系统结构、整体流程",
-        "keyword_list": ["总体方案", "方案概述", "架构", "总体架构", "模块组成", "系统结构", "整体流程"],
-        "description": "某项技术的总体设计，技术的总体框架，只要说的都是技术上的一些总体的描述即可，虽然可能提到了很多的技术",
+        "title": "解决方案与目标",
+        "keywords": "目标、需求、方案、解决方案、设计目标、技术路线、预期能力",
+        "keyword_list": ["目标", "需求", "方案", "解决方案", "设计目标", "技术路线", "预期能力"],
+        "description": "说明白皮书需要解决的问题、总体目标、方案边界和预期技术能力，重点回答要解决什么以及方案希望达到什么效果。",
         "max_subsections": None,
         "force_generate": False,
         "classifiable": True,
     },
     {
         "id": 4,
+        "title": "架构设计",
+        "keywords": "架构、总体架构、模块组成、系统结构、分层设计、组件关系、整体流程",
+        "keyword_list": ["架构", "总体架构", "模块组成", "系统结构", "分层设计", "组件关系", "整体流程"],
+        "description": "描述系统的总体架构、层次划分、组件组成、模块关系和信息流，重点回答各组成部分如何组织和协同。",
+        "max_subsections": None,
+        "force_generate": False,
+        "classifiable": True,
+    },
+    {
+        "id": 5,
         "title": "方法原理",
         "keywords": "原理、方法、算法、模型、机制、协议、关键技术、训练、推理、公式推导",
         "keyword_list": ["原理", "方法", "算法", "模型", "机制", "协议", "关键技术", "训练", "推理", "公式推导"],
@@ -69,7 +79,7 @@ WHITEPAPER_CHAPTERS = [
         "classifiable": True,
     },
     {
-        "id": 5,
+        "id": 6,
         "title": "应用场景",
         "keywords": "应用、场景、案例、业务、任务、落地",
         "keyword_list": ["应用", "场景", "案例", "业务", "任务", "落地"],
@@ -79,7 +89,7 @@ WHITEPAPER_CHAPTERS = [
         "classifiable": True,
     },
     {
-        "id": 6,
+        "id": 7,
         "title": "技术实现",
         "keywords": "实现、接口、模块、集成、部署、配置、监控、运维、日志、优化、SDK、API",
         "keyword_list": ["实现", "接口", "模块", "集成", "部署", "配置", "监控", "运维", "日志", "优化", "SDK", "API"],
@@ -89,7 +99,7 @@ WHITEPAPER_CHAPTERS = [
         "classifiable": True,
     },
     {
-        "id": 7,
+        "id": 8,
         "title": "评测与实验",
         "keywords": "实验、测试、benchmark、指标、对比、结果、分析",
         "keyword_list": ["实验", "测试", "benchmark", "指标", "对比", "结果", "分析"],
@@ -99,7 +109,7 @@ WHITEPAPER_CHAPTERS = [
         "classifiable": True,
     },
     {
-        "id": 8,
+        "id": 9,
         "title": "安全与合规",
         "keywords": "安全、隐私、合规、风险、威胁模型、攻击与防护、权限控制、加密、审计、治理",
         "keyword_list": ["安全", "隐私", "合规", "风险", "威胁模型", "攻击与防护", "权限控制", "加密", "审计", "治理"],
@@ -109,7 +119,7 @@ WHITEPAPER_CHAPTERS = [
         "classifiable": True,
     },
     {
-        "id": 9,
+        "id": 10,
         "title": "结论与展望",
         "keywords": "总结、结论、讨论、局限、展望、未来工作",
         "keyword_list": ["总结", "结论", "讨论", "局限", "展望", "未来工作"],
@@ -117,6 +127,16 @@ WHITEPAPER_CHAPTERS = [
         "max_subsections": None,
         "force_generate": True,
         "classifiable": False,
+    },
+    {
+        "id": 11,
+        "title": "附录",
+        "keywords": "附录、补充材料、术语、缩略语、参考配置",
+        "keyword_list": ["附录", "补充材料", "术语", "缩略语", "参考配置"],
+        "description": "收纳与正文相关但不适合放入主体章节的补充材料，例如术语、缩略语、参考配置或扩展说明；仅在存在明确证据时生成。",
+        "max_subsections": None,
+        "force_generate": False,
+        "classifiable": True,
     },
 ]
 
@@ -174,11 +194,7 @@ def build_title_grounding_rules(doc_title):
 2. 题目只用于确定写作重心、章节命名语气和内容组织方向。
 3. 具体内容只能来自用户提供的句子或摘要，不能因为题目而补充任何未出现的新事实、新方法、新实验、新场景。
 4. 如果题目很大，但材料里只覆盖其中一部分，只能写材料真实覆盖到的部分。
-5. 禁止捏造；禁止根据常识脑补；禁止扩写没有证据支撑的内容。
-
-【重要：最终大纲格式要求】
-6. 最终输出的大纲最后必须是"附录"章节，附录不需要展开二级小节，只输出一级标题。
-7. 所有章节序号必须连续排列，最终格式为：1. X、2. X、3. X、...、N. 附录。"""
+5. 禁止捏造；禁止根据常识脑补；禁止扩写没有证据支撑的内容。"""
 
 # ──────────────────────────────────────────────
 # 第1步A：仅做摘要
@@ -241,7 +257,7 @@ def classify_topic_by_cluster(topic_name, sentences, model, doc_title):
 
 【重要原则】
 1. 你必须直接依据"主题簇原始句子"进行判断，不能依据摘要进行判断。
-2. 只能在第 3~8 章之间选择；概述(1)、背景(2)、结论与展望(9)不参与这里的分类。
+2. 只能从下面列出的可分类章节中选择；概述、背景和结论与展望不参与这里的分类。
 3. 每个 Topic 最多只能归入一个章节。
 4. 只有当这个簇里的"主要内容"明显都在讲某一章节对应的内容时，才允许归类。主要内容即可，也就是簇里的主要信息60%以上符合某一章既可以归类。
 5. 如果这个簇内容混杂、重心不明确、或者不能稳定归入某一章，chapter_id 必须填 null。
@@ -327,7 +343,7 @@ def classify_all_topics(topics, model, doc_title):
                 "reason": reason,
             })
         else:
-            print(f"      → 未匹配 3~8 章节 | 原因: {reason or '无'}")
+            print(f"      → 未匹配任何可分类章节 | 原因: {reason or '无'}")
             classification_details.append({
                 "topic_name": topic_name,
                 "summary": summary,
@@ -546,7 +562,7 @@ def generate_chapter_outline(chapter, summary_list, model, doc_title):
        - 要点
 
 【最终大纲格式提醒】
-请注意，最终完整大纲的章节顺序为：1. X、2. X、3. X、...、N. 附录（附录不展开二级小节）。"""
+请保持当前章节的一级标题和二级小节结构；最终合并时会按实际出现的章节连续编号。"""
 
     try:
         resp = client.chat.completions.create(
@@ -606,16 +622,10 @@ def parse_outline_fragment(fragment):
 
 
 def merge_outline(chapter_outlines, doc_title=None):
-    """合并章节大纲，附录追加在最后，不参与重编号"""
+    """按实际生成的章节顺序合并大纲并连续重编号。"""
     parsed = []
-    appendix_line = None
 
     for frag in chapter_outlines:
-        frag_stripped = frag.strip()
-        # 检测附录行（只有一级标题，没有二级小节）
-        if re.match(r'^\d+\.\s*附录$', frag_stripped):
-            appendix_line = frag_stripped
-            continue
         item = parse_outline_fragment(frag)
         if item:
             parsed.append(item)
@@ -634,10 +644,6 @@ def merge_outline(chapter_outlines, doc_title=None):
             final_lines.append(f"   {new_idx}.{sub_idx} {sub['title']}")
             for bullet in sub["bullets"]:
                 final_lines.append(f"      - {bullet}")
-
-    # 附录追加在最后（不参与重编号，保持原编号）
-    if appendix_line:
-        final_lines.append(appendix_line)
 
     return "\n".join(final_lines)
 
@@ -704,7 +710,7 @@ def process_single_topic(topic_name, model=DEFAULT_LLM_MODEL):
             chapter_outlines.append(generate_background(all_summaries, model, doc_title))
             continue
 
-        if 3 <= cid <= 8:
+        if chapter["classifiable"]:
             if cid not in chapter_to_summaries:
                 print(f"  {cid}. {chapter['title']} → 无内容，跳过")
                 continue
@@ -716,18 +722,13 @@ def process_single_topic(topic_name, model=DEFAULT_LLM_MODEL):
             chapter_outlines.append(generate_chapter_outline(chapter, summary_list, model, doc_title))
             continue
 
-        if cid == 9:
-            print(f"  9. 结论与展望 → 强制保留，汇总全部 {len(all_summaries)} 个摘要，生成中...")
+        if cid == 10:
+            print(f"  10. 结论与展望 → 强制保留，汇总全部 {len(all_summaries)} 个摘要，生成中...")
             chapter_outlines.append(generate_conclusion(all_summaries, model, doc_title))
             continue
 
     # 阶段3：汇总整合
     print("\n=== 阶段3：汇总整合（连续重编号） ===")
-
-    # 直接追加"附录"章节（不经过分类，也不单独调模型）
-    appendix_block = f"{len(chapter_outlines) + 1}. 附录"
-    chapter_outlines.append(appendix_block)
-    print(f"  附录 → 直接追加（不参与分类，也不单独调模型）")
 
     final_outline = merge_outline(chapter_outlines, doc_title=doc_title)
 

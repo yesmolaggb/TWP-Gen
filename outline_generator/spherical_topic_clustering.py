@@ -16,12 +16,16 @@ from torch.utils.data import DataLoader, TensorDataset
 
 class AutoEncoder(nn.Module):
     def __init__(
-        self, input_dim1, input_dim2, input_dim3, input_dim4, input_dim5, hidden_dims, agg, sep_decode
+        self, input_dim1, input_dim2, input_dim3, input_dim4, input_dim5,
+        hidden_dims, agg, sep_decode, active_views=None
     ):
         super(AutoEncoder, self).__init__()
 
         self.agg = agg
         self.sep_decode = sep_decode
+        self.active_views = tuple(active_views or range(5))
+        if not self.active_views or any(index not in range(5) for index in self.active_views):
+            raise ValueError(f"Invalid active feature views: {self.active_views}")
 
         print("hidden_dims:", hidden_dims)
         print(f"输入维度: input_dim1={input_dim1}, input_dim2={input_dim2}, input_dim3={input_dim3}, input_dim4={input_dim4}, input_dim5={input_dim5}")
@@ -77,8 +81,7 @@ class AutoEncoder(nn.Module):
         
         # 处理concat聚合方法
         if self.agg == "concat":
-            # 对于concat方法，z的维度是5*最终隐藏层维度（增加了事件特征）
-            first_decoder_dim = 5 * hidden_dims[0]
+            first_decoder_dim = len(self.active_views) * hidden_dims[0]
         else:
             first_decoder_dim = hidden_dims[0]
             
@@ -132,15 +135,21 @@ class AutoEncoder(nn.Module):
         z4 = self.encoder4(x4)  # 简化后句子嵌入向量的编码
         z5 = self.encoder5(x5)  # 新增：事件嵌入向量的编码
 
-        # 聚合隐藏表示
+        # 聚合当前实验启用的特征视图。实体-动词关系由视图0和1共同构成。
+        encoded = [z1, z2, z3, z4, z5]
+        active = [encoded[index] for index in self.active_views]
         if self.agg == "max":
-            z = torch.max(torch.stack([z1, z2, z3, z4, z5]), dim=0)[0]  # 修改：加入z5
+            z = torch.max(torch.stack(active), dim=0)[0]
         elif self.agg == "multi":
-            z = z1 * z2 * z3 * z4 * z5  # 修改：加入z5
+            z = active[0]
+            for value in active[1:]:
+                z = z * value
         elif self.agg == "sum":
-            z = z1 + z2 + z3 + z4 + z5  # 修改：加入z5
+            z = torch.stack(active, dim=0).sum(dim=0)
         elif self.agg == "concat":
-            z = torch.cat([z1, z2, z3, z4, z5], dim=1)  # 修改：加入z5
+            z = torch.cat(active, dim=1)
+        else:
+            raise ValueError(f"Unsupported aggregation method: {self.agg}")
         
         # 解码阶段
         if self.sep_decode:
@@ -175,7 +184,7 @@ class TopicCluster(nn.Module):
     def __init__(self, args):
         super(TopicCluster, self).__init__()
         self.alpha = 1.0
-        self.dataset_path = "./dataset/{}".format(args.dataset)
+        self.dataset_path = os.path.join(str(args.dataset_root), str(args.dataset))
         self.args = args
         self.device = args.device
         self.temperature = args.temperature
@@ -202,11 +211,14 @@ class TopicCluster(nn.Module):
             hidden_dims,
             self.agg_method,
             self.sep_decode,
+            active_views=args.active_views,
         )
         if self.agg_method == "concat":
-            # 对于concat方法，z的维度是4*self.final_hidden_dim（增加了一个特征）
             self.topic_emb = Parameter(
-                torch.Tensor(args.n_clusters, 4 * self.final_hidden_dim)
+                torch.Tensor(
+                    args.n_clusters,
+                    len(args.active_views) * self.final_hidden_dim,
+                )
             )
         else:
             # 确保topic_emb与z的维度匹配，z的维度是self.final_hidden_dim
@@ -240,13 +252,12 @@ class TopicCluster(nn.Module):
                     weight = weight.to(self.device)
                     optimizer.zero_grad()
                     x_bar1, x_bar2, x_bar3, x_bar4, x_bar5, z = self.model(x1, x2, x3, x4, x5)  # 修改：增加x5参数和x_bar5返回值
-                    loss = (
-                        cosine_dist(x_bar1, x1)
-                        + cosine_dist(x_bar2, x2)
-                        + cosine_dist(x_bar3, x3)
-                        + cosine_dist(x_bar4, x4)
-                        + cosine_dist(x_bar5, x5)  # 新增：事件嵌入向量的重构损失
-                    )  # , weight)
+                    outputs = (x_bar1, x_bar2, x_bar3, x_bar4, x_bar5)
+                    inputs = (x1, x2, x3, x4, x5)
+                    loss = sum(
+                        cosine_dist(outputs[index], inputs[index])
+                        for index in self.args.active_views
+                    )
                     total_loss += loss.item()
                     loss.backward()
                     optimizer.step()
@@ -255,18 +266,22 @@ class TopicCluster(nn.Module):
             print(f"model saved to {pretrained_path}")
 
     def cluster_assign(self, z):
+        # The paper defines clustering on the unit sphere.  Normalize both the
+        # latent samples and trainable cluster centres for every assignment,
+        # including the Student-t branch, so refinement uses the same geometry
+        # as the normalized K-Means initialization.
+        z = F.normalize(z, p=2, dim=-1)
+        topic_emb = F.normalize(self.topic_emb, p=2, dim=-1)
         if self.distribution == "student":
             p = 1.0 / (
                 1.0
-                + torch.sum(torch.pow(z.unsqueeze(1) - self.topic_emb, 2), 2)
+                + torch.sum(torch.pow(z.unsqueeze(1) - topic_emb, 2), 2)
                 / self.alpha
             )
             p = p.pow((self.alpha + 1.0) / 2.0)
             p = (p.t() / torch.sum(p, 1)).t()
         else:
-            self.topic_emb.data = F.normalize(self.topic_emb.data, dim=-1)
-            z = F.normalize(z, dim=-1)
-            sim = torch.matmul(z, self.topic_emb.t()) / self.temperature
+            sim = torch.matmul(z, topic_emb.t()) / self.temperature
             p = F.softmax(sim, dim=-1)
         return p
 
@@ -475,13 +490,12 @@ def train(args, emb_dict):
             weight = weight.to(args.device)
 
             x_bar1, x_bar2, x_bar3, x_bar4, x_bar5, _, p = topic_cluster(x1, x2, x3, x4, x5)  # 修改：增加x5参数和x_bar5返回值
-            reconstr_loss = (
-                cosine_dist(x_bar1, x1)
-                + cosine_dist(x_bar2, x2)
-                + cosine_dist(x_bar3, x3)
-                + cosine_dist(x_bar4, x4)
-                + cosine_dist(x_bar5, x5)  # 新增：事件嵌入向量的重构损失
-            )  # , weight)
+            outputs = (x_bar1, x_bar2, x_bar3, x_bar4, x_bar5)
+            inputs = (x1, x2, x3, x4, x5)
+            reconstr_loss = sum(
+                cosine_dist(outputs[index], inputs[index])
+                for index in args.active_views
+            )
             kl_loss = F.kl_div(p.log(), q[idx], reduction="none").sum(-1)
             kl_loss = (kl_loss * weight).sum() / weight.sum()
             loss = args.gamma * kl_loss + reconstr_loss

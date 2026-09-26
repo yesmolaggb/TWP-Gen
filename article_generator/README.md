@@ -1,13 +1,26 @@
 # Article Generator
 
-Lightweight outline-to-article generation module for the TWP-Gen pipeline.
+This package implements the outline-to-article stage of TWP-Gen. The canonical
+pipeline entry point is:
 
-The integrated pipeline calls `src/run_from_outline.py` with `--no-search`, so it generates the final article directly from the outline created by `outline_generator`. Runtime outputs go to `../output/article` and `../output/references`.
+```text
+src/post_outline/run_postoutline_experiment.py
+```
 
-Configure the LLM through the project `.env` file: `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `TWPGEN_LLM_MODEL`, or the article-specific `ARTICLE_LLM_*` variables.
+It reads the outline produced by `outline_generator`, retrieves section-specific
+evidence from the collected source package, verifies supported outline items,
+generates the document section by section, aligns claims with citations, and writes:
 
-## Alternative generation path
+```text
+../output/post_outline/article/<topic>.md
+../output/post_outline/references/<topic>.json
+../output/post_outline/diagnostics/<topic>.json
+```
 
-`src/post_outline/` provides a second implementation of the same stage (outline → article).
-It keeps the same inputs and outputs, and adds section-level evidence retrieval, claim-level
-fact verification and passage-level citation records. See `src/post_outline/README.md`.
+The end-to-end runner `../scripts/run_twpgen_pipeline.sh` calls this same entry
+point. `src/run_from_outline.py` remains for backward compatibility but is not the
+paper-reproduction path.
+
+Configure the model once through the repository-root `.env` and
+`twpgen_config.json`. See the [main README](../README.md) and
+[post-outline documentation](src/post_outline/README.md).

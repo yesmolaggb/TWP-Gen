@@ -30,6 +30,14 @@ enumArgs = {
     "temperature": [0.1],
 }
 
+FEATURE_VARIANTS = {
+    "full": ((0, 1, 2, 3, 4), ""),
+    "without_event": ((0, 1, 2, 3), "wo_event"),
+    "without_graph": ((0, 1, 3, 4), "wo_graph"),
+    "without_entity_verb": ((2, 3, 4), "wo_entity_verb"),
+    "semantic_only": ((3,), "semantic_only"),
+}
+
 
 @dataclass(init=True)
 class Arg:
@@ -48,6 +56,7 @@ class Arg:
     temperature: float
 
     dataset = ARGS.dataset
+    dataset_root = ARGS.dataset_root
     input_emb_name = ARGS.save_po_tuple_feature_path
 
     # 默认值只作为兜底，实际会在读取特征后自动覆盖
@@ -151,6 +160,14 @@ def infer_num_samples(emb_dict):
 
 for enum_args in itertools.product(*enumArgs.values()):
     args = Arg(*enum_args)
+    variant = os.environ.get("TWPGEN_FEATURE_VARIANT", "full").strip().lower()
+    if variant not in FEATURE_VARIANTS:
+        raise ValueError(
+            f"Unknown TWPGEN_FEATURE_VARIANT={variant!r}; "
+            f"choose from {sorted(FEATURE_VARIANTS)}"
+        )
+    args.active_views, args.suffix = FEATURE_VARIANTS[variant]
+    print(f"特征消融设置: {variant}; active_views={args.active_views}")
     # print(enum_args)
 
     args.cuda = torch.cuda.is_available()
@@ -195,7 +212,11 @@ for enum_args in itertools.product(*enumArgs.values()):
     else:
         X = latent_space_clustering.train(args, emb_dict)
 
-    evaluator = Evaluator(args.dataset, "clusters_/cluster.txt", args.n_clusters)
+    evaluator = Evaluator(
+        args.dataset,
+        f"clusters_{args.suffix}/cluster.txt",
+        args.n_clusters,
+    )
     # evaluator = Evaluator('MAVEN_ERE', 'clusters_/35.txt')
     metrics = Metrics(*evaluator.evaluate(["None", "max"]))
     all_metrics.append(metrics)

@@ -1,219 +1,284 @@
 # TWP-Gen
 
-English | [中文](README.zh-CN.md)
+English | [简体中文](README.zh-CN.md)
 
-Reference implementation for **Technical White Paper Generation via Multidimensional
+Official implementation of **Technical White Paper Generation via Multidimensional
 Feature Fusion**.
+
+TWP-Gen is a bottom-up framework that converts retrieved evidence into traceable
+predicate--object knowledge units, represents them with four complementary views,
+clusters related evidence, induces an evidence-grounded outline from an 11-function
+white-paper taxonomy, and generates each section with source-linked citations.
 
 ![Overall architecture of TWP-Gen](assets/method_overview.png)
 
-*Overall architecture of TWP-Gen. The framework consists of five stages: (A) input
-and retrieval for collecting evidence and knowledge units; (B) feature extraction for
-entity-verb, semantic, event, and graph features; (C) feature fusion and clustering
-for topic clusters; (D) outline induction for evidence-grounded structure; and (E)
-citation-supported white paper generation.*
+*The five stages are: (A) evidence retrieval and knowledge-unit construction;
+(B) multidimensional feature extraction; (C) feature fusion and clustering;
+(D) evidence-grounded outline induction; and (E) citation-supported generation.*
 
-TWP-Gen is a bottom-up framework for technical white-paper generation. It retrieves
-topic-related materials, converts them into traceable predicate-object knowledge
-units, represents each unit through four complementary views (entity-verb relation,
-sentence semantics, event function, and graph structure), fuses and clusters them,
-maps the clusters to a corpus-derived section taxonomy to induce an evidence-grounded
-outline, and finally generates each section with its associated source records.
+## At a glance
 
-## Included
+| Component | What TWP-Gen does | Main output |
+|---|---|---|
+| Knowledge collection | Retrieves topic-related materials and preserves source metadata | `dataset/<topic>/corpus.txt` and source records |
+| Knowledge-unit modeling | Extracts predicate--object units and four conceptual feature views | Per-topic feature artifacts |
+| Evidence clustering | Fuses normalized views and refines 60 topic clusters | `dataset/<topic>/clusters_/` |
+| Outline induction | Maps supported clusters to an 11-function section taxonomy | `dataset/<topic>/outline.txt` |
+| Article generation | Drafts sections from their own evidence and binds citations | Article, references, and diagnostics |
+| Evaluation | Scores ten metrics in three groups and aggregates repeated runs | JSON, CSV, Markdown, and figures |
 
-The repository keeps only the main pipeline code, a root-level configuration template, topic examples, utility modules, and launch scripts. Large datasets, generated resources, logs, model checkpoints, and runtime outputs are not shipped. Runtime folders are created automatically when needed.
+## Paper-to-code mapping
 
-## Main Entry Points
+The paper defines four **conceptual views**. The first view is implemented with two
+internal branches, so the implementation uses five tensors without changing the
+four-view method described in the paper.
+
+| Paper view | Implementation artifact | Role |
+|---|---|---|
+| Entity--verb relation | `vs_emb` + `oh_emb` | Predicate-sense and object-head sub-branches jointly form the first view |
+| Sentence semantics | `summarized_emb` | Contextual meaning of the compressed evidence sentence |
+| Event function | `event_emb` | Functional/event-level information |
+| Graph structure | `sents_graph_emb` | Structural relations learned from the evidence graph |
+
+Other settings shared by the paper and code:
+
+| Item | Paper setting | Code location |
+|---|---:|---|
+| Number of technical-white-paper clusters | `k = 60` | `outline_generator/run_twpgen.py` |
+| Clustering-loss weight | `gamma = 5` | `outline_generator/run_twpgen.py` |
+| Fusion method | Element-wise sum | `outline_generator/spherical_topic_clustering.py` |
+| Conceptual feature views | 4 | Five internal tensors mapped above |
+| Section taxonomy | 11 functions | `outline_generator/generate_whitepaper_outline.py` |
+| Evaluation protocol | 10 metrics, 3 groups, 3 repeated runs | `dataset/evaluation/` |
+
+### Section taxonomy
+
+Overview, Background, and Conclusion and Outlook are core sections. The other
+functions are instantiated only when one or more evidence clusters support them.
+
+| ID | Section function | Activation |
+|---:|---|---|
+| 1 | Overview | Core |
+| 2 | Background | Core |
+| 3 | Solution and Objectives | Evidence-dependent |
+| 4 | Architecture Design | Evidence-dependent |
+| 5 | Methodological Principles | Evidence-dependent |
+| 6 | Application Scenarios | Evidence-dependent |
+| 7 | Technical Implementation | Evidence-dependent |
+| 8 | Evaluation and Experiments | Evidence-dependent |
+| 9 | Security and Compliance | Evidence-dependent |
+| 10 | Conclusion and Outlook | Core |
+| 11 | Appendix | Evidence-dependent |
+
+Clusters that cannot be assigned confidently do not create a standalone section;
+their summaries remain available as document-level context for the three core
+sections, matching the paper's formulation.
+
+## Repository layout
 
 ```text
-twpgen_settings.py                     Central configuration (single source of truth)
-twpgen_config.example.json             Configuration template without secrets
-twpgen_config.json                     Your local configuration (created from the template)
-dataset/whitepaper_topics.json          The 60 generation tasks of the paper
-dataset/evaluation/                    Metric definitions, rubrics and scoring scripts
-scripts/run_twpgen_pipeline.sh         Full topic pipeline runner
-outline_generator/run_twpgen.py        Main clustering entry point
-outline_generator/generate_whitepaper_outline.py
-                                       Outline synthesis entry point
-outline_generator/retrieve_outline_evidence.py
-                                       Evidence matching entry point
-article_generator/src/post_outline/    Outline-to-article generation (evidence-grounded path)
+TWP-Gen/
+├── assets/                         Method figure used above
+├── dataset/
+│   ├── whitepaper_topics.json      60 tasks and eight domain labels
+│   ├── whitepaper_topics.txt       One title per line for batch execution
+│   └── evaluation/                 Ten-metric LLM evaluation implementation
+├── experiments/
+│   ├── cluster_number/             k-sensitivity experiment
+│   ├── duee/                       DuEE metrics and algorithm comparison
+│   ├── run_feature_ablation.py     Feature-view ablation launcher
+│   ├── ablation_analysis.py        Ablation result aggregation
+│   ├── statistical_significance.py Paired Wilcoxon, Holm, and confidence intervals
+│   └── domain_analysis.py          Eight-domain aggregation
+├── knowledge_collector/            Retrieval and source collection
+├── outline_generator/              Knowledge units, feature fusion, clustering, outline
+├── article_generator/              Evidence-grounded article generation
+├── scripts/run_twpgen_pipeline.sh  End-to-end runner
+├── twpgen_settings.py              Central configuration loader
+└── twpgen_config.example.json      Secret-free configuration template
 ```
 
-## Configuration
+Large corpora, model checkpoints, generated features, logs, and output documents
+are intentionally excluded. The corresponding runtime directories are Git-ignored.
+
+## Installation
+
+Linux and Python 3.10+ are recommended. CUDA is required for the full neural
+feature and clustering pipeline.
 
 ```bash
-cp .env.example .env
-cp twpgen_config.example.json twpgen_config.json
-```
-
-Both files live at the repository root. `twpgen_config.json` holds every path,
-API key, model name, dictionary location and topic list; `.env` only supplies
-secrets and per-machine overrides. Keep real API keys out of Git, and edit
-`twpgen_config.json` instead of scattering paths across scripts.
-
-Every entry point reads the same values through `twpgen_settings.py`:
-
-```bash
-python twpgen_settings.py           # print the resolved configuration as JSON
-python twpgen_settings.py --shell   # print export KEY=VALUE lines for shell scripts
-```
-
-The resolution order is: environment variable, then `twpgen_config.json`, then
-the built-in defaults in `twpgen_settings.py`. Relative paths in the config file
-are resolved against the repository root, so the same file works on any machine
-after you copy the repository.
-
-To point at a different config file, set `TWPGEN_CONFIG`:
-
-```bash
-TWPGEN_CONFIG=./my_config.json python twpgen_settings.py
-```
-
-## Quick start
-
-```bash
-# 1. install dependencies
+git clone https://github.com/yesmolaggb/TWP-Gen.git
+cd TWP-Gen
 pip install -r requirements.txt
 
-# 2. create the local configuration
 cp .env.example .env
 cp twpgen_config.example.json twpgen_config.json
-#    then edit twpgen_config.json and put your API key in .env
+```
 
-# 3. sanity check: print every resolved path and model setting
+Place credentials only in `.env`; both `.env` and `twpgen_config.json` are ignored
+by Git. The central resolution order is:
+
+```text
+environment variable > twpgen_config.json > built-in default
+```
+
+Inspect all resolved paths and model settings before a long run:
+
+```bash
 python twpgen_settings.py
+python twpgen_settings.py --shell
+```
 
-# 4. run the full pipeline for every topic in the task list
+### Main environment variables
+
+| Variable | Purpose | Required when |
+|---|---|---|
+| `OPENAI_API_KEY` | Key for an OpenAI-compatible LLM endpoint | Outline generation, article generation, or evaluation |
+| `OPENAI_BASE_URL` | OpenAI-compatible endpoint | Using a hosted or local compatible service |
+| `TWPGEN_LLM_MODEL` | Default model served by that endpoint | Any LLM stage |
+| `TAVILY_API_KEY` / `TAVILY_API_KEYS` | One key or a key pool for web retrieval | Tavily retrieval is enabled |
+| `TWPGEN_TAVILY_KEY_FILE` | File containing one Tavily key per line | File-based key-pool configuration |
+| `ARTICLE_LLM_MODEL` | Optional article-generation model override | Generator differs from the default model |
+| `ARTICLE_ENABLE_THINKING` | Enables model reasoning when supported | Reproducing a reasoning-enabled generator |
+| `TWPGEN_TOPIC_FILE` | Batch topic list | Overriding `dataset/whitepaper_topics.txt` |
+
+Model paths, runtime environments, resource dictionaries, output directories, and
+hyperparameters are configured once in `twpgen_config.json`.
+
+## Running TWP-Gen
+
+### End-to-end execution
+
+The default topic list is `dataset/whitepaper_topics.txt`, which contains all 60
+paper tasks. The runner keeps per-topic state and logs so interrupted topics can be
+resumed.
+
+```bash
 bash scripts/run_twpgen_pipeline.sh
 ```
 
-The runner exports the same configuration values used by the Python entry points,
-so the shell stages and the Python stages never disagree about paths or models.
+To run a smaller list, point `TWPGEN_TOPIC_FILE` to another one-title-per-line file.
 
-## Step-by-step run
+### Generate articles from prepared outlines
 
-The pipeline has three stages. Run them in order; each stage reads the central
-configuration, so no paths need to be passed on the command line.
-
-### Step 0 - configure once
-
-```bash
-cp .env.example .env
-cp twpgen_config.example.json twpgen_config.json
-```
-
-`twpgen_config.json` holds every path, model name, dictionary location and topic
-list. `.env` holds the secret:
-
-```ini
-OPENAI_API_KEY=sk-...
-OPENAI_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
-```
-
-Verify what the code will use before running anything expensive:
-
-```bash
-python twpgen_settings.py           # resolved configuration as JSON
-python twpgen_settings.py --shell   # export KEY=VALUE lines for shell scripts
-```
-
-### Step 1 - collect knowledge
-
-```
-knowledge_collector/collect_references.py
-```
-
-Reads the topic list (`dataset/whitepaper_topics.txt`) and writes one corpus per
-topic under `dataset/<topic>/corpus.txt`. Requires the search credentials from
-`.env` (`TAVILY_API_KEY` and, when used, the Jina key).
-
-### Step 2 - cluster and induce the outline
-
-```
-outline_generator/run_twpgen.py
-outline_generator/generate_whitepaper_outline.py
-outline_generator/retrieve_outline_evidence.py
-```
-
-Builds knowledge units, extracts the four feature views, fuses and clusters them
-(`k = 60` in the paper), maps the clusters onto the section taxonomy and writes
-`dataset/<topic>/outline.txt`.
-
-### Step 3 - generate the white paper
-
-```
-article_generator/src/post_outline/run_postoutline_experiment.py
-```
-
-Generates each section from its own outline node plus that section's evidence and
-source records, then assembles the final document with traceable citations:
+Use this when retrieval, clustering, and outline induction have already completed:
 
 ```bash
 python article_generator/src/post_outline/run_postoutline_experiment.py \
   --outline-root dataset \
-  --source-root  knowledge_collector/result \
-  --output-root  output/post_outline \
-  --limit 5          # drop --limit to run every topic
+  --source-root knowledge_collector/result \
+  --output-root output/post_outline \
+  --limit 5
 ```
 
-Outputs:
+`--limit 0` (the default) processes every configured topic. Use one or more
+`--topic "<title>"` options to select exact topics. Add `--overwrite` to regenerate
+existing articles.
 
+### Output structure
+
+```text
+output/post_outline/
+├── article/<topic>.md          Generated white paper
+├── references/<topic>.json     Cited source titles, URLs, and excerpts
+├── diagnostics/<topic>.json    Citation and grounding diagnostics
+├── run_manifest.json           Per-topic status
+└── run_summary.json            Model, mode, duration, and run summary
 ```
-output/post_outline/generated/article/<topic>.md    generated white paper
-output/post_outline/final/article/<topic>.md        citation-anchored version
-output/post_outline/final/references/<topic>.json   per-source citation records
-```
-
-### Step 4 - evaluate
-
-```bash
-python dataset/evaluation/evaluate_topics.py \
-  --article-dir output/post_outline/final/article \
-  --output      output/evaluation/scores.json \
-  --repeats     3
-```
-
-Ten 0--5 metrics over three groups, one call per group, three runs averaged per
-metric. To summarise existing per-method result files instead:
-
-```bash
-python dataset/evaluation/run_summary.py --results-root path/to/eval --backbone 32b
-```
-
-## Data
-
-Prepare your input under the configured dataset root, defaulting to `./dataset/<topic>/`. The open-source package intentionally does not include private corpora, generated `.pk` features, checkpoints, or large dictionaries.
 
 ## Dataset
 
-The 60 generation tasks used in the paper and the evaluation code live in `dataset/`:
+`dataset/whitepaper_topics.json` contains the 60 Chinese technical-white-paper
+generation tasks used in the paper. Domain labels are used only for grouping and
+reporting.
 
-| Path | What it is |
+| Domain | Topics |
+|---|---:|
+| Networking and Internet protocols | 16 |
+| AI and intelligent computing | 11 |
+| Mobile communications (5G/6G) | 7 |
+| Cybersecurity and trust | 7 |
+| Industrial and sector applications | 6 |
+| Cloud, data center and storage | 5 |
+| Multimedia, sensing and XR | 4 |
+| Energy and sustainable infrastructure | 4 |
+| **Total** | **60** |
+
+Runtime evidence, proprietary/large corpora, model weights, and generated documents
+are not redistributed. See [dataset/README.md](dataset/README.md) for the task schema.
+
+## Evaluation
+
+The automatic protocol scores ten metrics on a 0--5 scale. The evaluator receives
+an anonymized article. For Evidence Credibility it additionally receives citation
+statistics, cited passage--source-excerpt pairs, source titles and URLs, and uncited
+article excerpts.
+
+| Group | Metrics |
 |---|---|
-| `dataset/whitepaper_topics.json` | The 60 tasks with `id`, `title` and `domain` |
-| `dataset/whitepaper_topics.txt` | The same titles as a plain one-per-line list |
-| `dataset/evaluation/` | The evaluation code: metrics, rubrics, scoring and summarisation |
-| `dataset/<topic>/` | Generated per-topic runtime data (git-ignored) |
+| Content Quality | Relevance, Breadth, Depth, Novelty |
+| White-Paper Adaptability | Technical Specificity, Understandability, Structurality |
+| Evidence Credibility | Citation Sufficiency, Citation Validity, Factual Consistency |
 
-Their locations are part of the central configuration, so any stage can read them
-through `twpgen_settings.py` (`topic_dataset_file`, `evaluation_code_dir`, ...).
+```bash
+python dataset/evaluation/evaluate_topics.py \
+  --article-dir output/post_outline/article \
+  --reference-dir output/post_outline/references \
+  --diagnostic-dir output/post_outline/diagnostics \
+  --output output/evaluation/scores.json \
+  --repeats 3 \
+  --resume
 
-## Project Layout
+python dataset/evaluation/run_summary.py \
+  --results-root output/evaluation \
+  --backbone 32b
+```
 
-TWP-Gen is organized as a three-stage pipeline:
+When `article`, `references`, and `diagnostics` are sibling directories, the latter
+two are detected automatically.
 
-- `knowledge_collector/`: collect web knowledge and write `dataset/<topic>/corpus.txt`.
-- `outline_generator/`: cluster and fuse evidence, then write `dataset/<topic>/outline.txt`.
-- `article_generator/`: generate final Markdown/HTML articles from the outline.
-- `scripts/run_twpgen_pipeline.sh`: one-command pipeline runner.
+## Reproducing the paper analyses
 
-## Reuse of the configuration
+The scripts below are executable experiment entry points. Some require intermediate
+features or scored baseline outputs that are too large or not licensed for release.
 
-Only `twpgen_settings.py` reads `twpgen_config.json`/`.env`; every other module
-imports the resolved values from it. `outline_generator/twpgen_config.py` is kept
-as a thin re-export so the existing `import twpgen_config as args` call sites keep
-working, and `article_generator/src/post_outline/llm_settings.py` is the adapter
-used by the outline-to-article path. To add a new path or credential, add it once
-in `twpgen_settings.py` and use it everywhere.
+| Analysis | Command | Required local input | Main output |
+|---|---|---|---|
+| Cluster-number sensitivity | `python experiments/cluster_number/run_sensitivity.py --dataset-root dataset --topics-file dataset/whitepaper_topics.json --k 20 30 40 50 60 70 80` | Per-topic `clusters_/embed_0.pt` | CSV/JSON and figure |
+| DuEE clustering algorithms | `python experiments/duee/compare_clustering_algorithms.py --input <arrays.npz> --output-dir output/duee_algorithms` | NPZ with `labels` and `gesi_embeddings` | ARI/NMI/ACC/B³ F1 table |
+| Feature-view runs | `python experiments/run_feature_ablation.py --topic <topic> --dataset-root dataset` | Prepared per-topic feature bank | Variant run manifest |
+| Ablation aggregation | `python experiments/ablation_analysis.py --results-root <eval-root> --backbone 32b` | Completed variant scores | JSON/CSV/Markdown |
+| Statistical significance | `python experiments/statistical_significance.py --results-root <eval-root> --backbone 32b` | Topic-level paired scores | Wilcoxon/Holm table and CI figure |
+| Cross-domain analysis | `python experiments/domain_analysis.py --results-root <eval-root> --topics dataset/whitepaper_topics.json --backbone 32b` | Topic-level scores | Eight-domain table |
+
+For DuEE, the repository implements standard ARI, NMI, optimal one-to-one Hungarian
+ACC, and B³ F1. All four values are reported after multiplication by 100; higher is
+better.
+
+## Results reported in the paper
+
+The following compact table mirrors the paper's overall comparison. `Avg.` is the
+unweighted mean of the ten metrics.
+
+| Generator | Evaluator | TWP-Gen Avg. | Best baseline Avg. | Improvement |
+|---|---|---:|---:|---:|
+| Qwen3-14B, reasoning disabled | Qwen3-32B | **4.39** | 4.09 | +0.30 |
+| Qwen3-32B, reasoning enabled | Qwen3-32B | **4.49** | 4.14 | +0.35 |
+| Qwen3-32B, reasoning enabled | DeepSeek-V3 | **4.43** | 4.11 | +0.32 |
+
+On the 1,011-instance DuEE controlled subset, the multidimensional representation
+achieves 50.55 ARI, 73.94 NMI, 58.19 ACC, and 67.21 B³ F1, compared with 34.03,
+56.33, 47.54, and 53.82 for sentence semantics alone. Paired comparisons over the
+60 white-paper topics yield Holm-adjusted Wilcoxon `p < 0.001`; against the strongest
+baseline, the mean difference is 0.354 with a 95% confidence interval of
+`[0.275, 0.428]`.
+
+## Reproducibility notes
+
+- Random seeds and experiment-specific parameters are exposed by the experiment
+  scripts; use `--help` on any entry point for the full interface.
+- The same central configuration is imported by retrieval, outline, generation, and
+  evaluation code. Do not add machine-specific paths or keys directly to modules.
+- Generated outputs and large intermediate artifacts are deliberately excluded from
+  Git. Their expected locations are documented above and in each script's help text.
+- The source code is available at <https://github.com/yesmolaggb/TWP-Gen>.

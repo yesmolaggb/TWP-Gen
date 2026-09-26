@@ -12,6 +12,13 @@ import numpy as np
 import itertools
 import twpgen_config as args
 from collections import defaultdict
+import sys
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+from experiments.duee.clustering_metrics import evaluate as evaluate_clustering
 
 
 class Evaluator:
@@ -315,21 +322,15 @@ class Evaluator:
             return 0, 0, 0, 0
             
         try:
-            ari = metrics.adjusted_rand_score(self.labels_true, self.labels_pred)
-            nmi = metrics.normalized_mutual_info_score(
-                self.labels_true, self.labels_pred, average_method="min"
+            scores = evaluate_clustering(
+                np.asarray(self.labels_true), np.asarray(self.labels_pred)
             )
-            precision = metrics.homogeneity_score(self.labels_true, self.labels_pred)
-            recall = metrics.completeness_score(self.labels_true, self.labels_pred)
-            bcubed_f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
-            acc = self.best_acc(self.labels_true, self.labels_pred)
-
-            ari = (ari + 1) / 2 * 100
-            nmi = nmi * 100
-            precision = precision * 100
-            recall = recall * 100
-            acc = acc * 100
-            bcubed_f1 = bcubed_f1 * 100
+            ari = scores["ARI"]
+            nmi = scores["NMI"]
+            precision = scores["B3_precision"]
+            recall = scores["B3_recall"]
+            acc = scores["ACC"]
+            bcubed_f1 = scores["B3_F1"]
             print("ari(%): {:.2f}%".format(ari))
             print("nmi(%): {:.2f}%".format(nmi))
             print("precision(%): {:.2f}%".format(precision))

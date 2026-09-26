@@ -8,8 +8,8 @@ OutlineArticleWriter 批量大纲报告生成器
 大纲文件目录: ./topic/  （每个 .md 文件即一个主题，文件名=题目名）
 
 输出结构:
-    ./output/article/       — 文章（.md + .html，文件名=大纲文件名）
-    ./output/references/    — 参考文献（.json，含标号/id、url、content）
+    ./output/post_outline/article/ — 文章（.md + .html，文件名=大纲文件名）
+    ./output/post_outline/references/ — 参考文献（.json，含标号/id、url、content）
 """
 
 import asyncio

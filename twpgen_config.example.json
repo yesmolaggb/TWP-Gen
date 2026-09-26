@@ -21,12 +21,12 @@
   },
 
   "article": {
-    "article_dir": "./output/article",
-    "references_dir": "./output/references"
+    "article_dir": "./output/post_outline/article",
+    "references_dir": "./output/post_outline/references"
   },
 
   "topics": {
-    "topic_file": "./knowledge_collector/topic.txt",
+    "topic_file": "./dataset/whitepaper_topics.txt",
     "default": [
       "HDM技术白皮书",
       "MagicOS安全技术白皮书",
@@ -58,7 +58,7 @@
   },
 
   "models": {
-    "model_root": "/workspace/model",
+    "model_root": "./models",
     "language_models": {
       "blu": "bert-large-uncased-whole-word-masking",
       "macbert": "chinese-macbert-base",
@@ -75,8 +75,8 @@
   },
 
   "runtime": {
-    "docgen_env": "/workspace/conda/docgen",
-    "pipeline_env": "/workspace/conda/GESI",
+    "docgen_env": "docgen",
+    "pipeline_env": "GESI",
     "article_env": ""
   },
 

@@ -1,8 +1,9 @@
 """Aggregate per-document scores into the reported summary.
 
-Reads the three metric-group result files produced by the scoring stage for one
-.method directory, computes the mean of every metric, the three group averages and
-the unweighted overall average, and writes JSON, CSV and Markdown summaries.
+Reads either the unified ``scores.json`` produced by ``evaluate_topics.py`` or the
+legacy three metric-group files for one method directory, computes the mean of every
+metric, the three group averages and the unweighted overall average, and writes
+JSON, CSV and Markdown summaries.
 """
 
 from __future__ import annotations
@@ -84,8 +85,51 @@ def load_records(path: Path) -> list[dict]:
     return records
 
 
-def evaluate_method(method_dir: Path) -> MethodResult:
+def _unified_result_candidates(method_dir: Path, backbone: str) -> tuple[Path, ...]:
+    return (
+        method_dir / f"scores_{backbone}.json",
+        method_dir / "scores.json",
+        method_dir / "evaluation" / f"scores_{backbone}.json",
+        method_dir / "evaluation" / "scores.json",
+    )
+
+
+def _evaluate_unified(path: Path) -> MethodResult:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    records = payload.get("documents") if isinstance(payload, dict) else None
+    if not isinstance(records, list):
+        raise ValueError(f"{path}: expected {{'documents': [...]}}")
+    records = [r for r in records if r.get("status", "success") == "success"]
+    if not records:
+        raise ValueError(f"{path}: no successful records")
+
+    values: dict[str, list[float]] = {metric: [] for metric in METRIC_ORDER}
+    for index, record in enumerate(records):
+        means = record.get("mean")
+        raw_runs = record.get("scores")
+        for metric in METRIC_ORDER:
+            value = means.get(metric) if isinstance(means, dict) else None
+            if value is None and isinstance(raw_runs, dict):
+                runs = raw_runs.get(metric)
+                if isinstance(runs, list) and runs:
+                    value = sum(float(item) for item in runs) / len(runs)
+            values[metric].append(
+                validate_score(value, f"{path}: record {index} {metric}")
+            )
+
+    return MethodResult(
+        metrics={metric: sum(scores) / len(scores) for metric, scores in values.items()},
+        counts={metric: len(scores) for metric, scores in values.items()},
+    )
+
+
+def evaluate_method(method_dir: Path, backbone: str = "32b") -> MethodResult:
     """Average each metric over every document of one method."""
+    for candidate in _unified_result_candidates(method_dir, backbone):
+        if candidate.is_file():
+            return _evaluate_unified(candidate)
+
+    # Backward-compatible fallback for the original three metric-group files.
     metrics: dict[str, float] = {}
     counts: dict[str, int] = {}
 
@@ -122,7 +166,7 @@ def evaluate_all(root: Path, backbone: str) -> dict[str, MethodResult]:
     """Evaluate every method for one generation backbone."""
     results = {}
     for method_dir, framework in METHODS.items():
-        results[framework] = evaluate_method(root / method_dir)
+        results[framework] = evaluate_method(root / method_dir, backbone)
     return results
 
 

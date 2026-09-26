@@ -6,9 +6,10 @@ Example
         --results-root path/to/eval --backbone 32b
 
 The result directory must contain one subdirectory per method
-(``rag``, ``storm``, ``omni``, ``conver``, ``own``) with the three metric-group
-files produced by the scoring stage. The script prints the table and writes a JSON,
-a CSV and a Markdown copy.
+(``rag``, ``storm``, ``omni``, ``conver``, ``own``). Each method directory may
+contain the unified ``scores.json``/``scores_<backbone>.json`` produced by
+``evaluate_topics.py`` or the original three metric-group result files. The script
+prints the table and writes a JSON, a CSV and a Markdown copy.
 """
 
 from __future__ import annotations

@@ -140,8 +140,8 @@ class GAEDataLoader:
                 )
                 print("loading Transformer model")
                 pretrained_weights = _cfg.language_model_paths.get(
-                    "macbert", "/workspace/model/chinese-macbert-base"
-                ) if _cfg else "/workspace/model/chinese-macbert-base"
+                    "macbert", "./models/chinese-macbert-base"
+                ) if _cfg else "./models/chinese-macbert-base"
                 pretrained_weights_path = Path(pretrained_weights)
                 model_class, tokenizer_class = BertForMaskedLM, BertTokenizer
 

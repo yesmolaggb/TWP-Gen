@@ -150,13 +150,17 @@ duee_dir = path_setting(("TWPGEN_DUEE_DIR",), "datasets.duee_dir", "./dataset/Du
 resource_dir = path_setting(("TWPGEN_RESOURCE_DIR",), "resource_dir", "./resources")
 output_dir = path_setting(("TWPGEN_OUTPUT_DIR",), "output_dir", "./output")
 
-article_dir = path_setting(("TWPGEN_ARTICLE_DIR",), "article.article_dir", "./output/article")
+article_dir = path_setting(
+    ("TWPGEN_ARTICLE_DIR",), "article.article_dir", "./output/post_outline/article"
+)
 references_dir = path_setting(
-    ("TWPGEN_REFERENCES_DIR",), "article.references_dir", "./output/references"
+    ("TWPGEN_REFERENCES_DIR",),
+    "article.references_dir",
+    "./output/post_outline/references",
 )
 
 topic_file = path_setting(
-    ("TWPGEN_TOPIC_FILE",), "topics.topic_file", "./knowledge_collector/topic.txt"
+    ("TWPGEN_TOPIC_FILE",), "topics.topic_file", "./dataset/whitepaper_topics.txt"
 )
 outline_dir = path_setting(("TWPGEN_OUTLINE_DIR",), "paths.outline_dir", "./dataset")
 article_source_dir = path_setting(
@@ -232,8 +236,8 @@ learning_rate = _float(_graph.get("learning_rate"), 0.001)
 gpu_id = _int_list(os.environ.get("TWPGEN_GPU_IDS"), list(_cfg("gpu_ids", [0, 1])))
 
 # conda / virtualenv names used by scripts/run_twpgen_pipeline.sh
-docgen_env = str(_get(("TWPGEN_DOCGEN_ENV",), "runtime.docgen_env", "/workspace/conda/docgen"))
-pipeline_env = str(_get(("TWPGEN_PIPELINE_ENV",), "runtime.pipeline_env", "/workspace/conda/GESI"))
+docgen_env = str(_get(("TWPGEN_DOCGEN_ENV",), "runtime.docgen_env", "docgen"))
+pipeline_env = str(_get(("TWPGEN_PIPELINE_ENV",), "runtime.pipeline_env", "GESI"))
 article_env = str(
     _get(("TWPGEN_ARTICLE_ENV",), "runtime.article_env", pipeline_env)
 )
@@ -242,7 +246,7 @@ article_env = str(
 # --------------------------------------------------------------------------- #
 # pretrained model locations
 # --------------------------------------------------------------------------- #
-model_root = str(_get(("TWPGEN_MODEL_ROOT",), "models.model_root", "/workspace/model"))
+model_root = str(_get(("TWPGEN_MODEL_ROOT",), "models.model_root", "./models"))
 _model_names = _section("models").get(
     "language_models",
     {

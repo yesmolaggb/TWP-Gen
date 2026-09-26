@@ -32,11 +32,11 @@ except Exception:  # pragma: no cover
 
 
 def _default_article_dir() -> str:
-    return repo_config.article_dir if repo_config else "output/article"
+    return repo_config.article_dir if repo_config else "output/post_outline/article"
 
 
 def _default_references_dir() -> str:
-    return repo_config.references_dir if repo_config else "output/references"
+    return repo_config.references_dir if repo_config else "output/post_outline/references"
 import json
 import os
 import re
