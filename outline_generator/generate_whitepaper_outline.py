@@ -240,27 +240,30 @@ def summarize_topic(topic_name, sentences, model, doc_title):
         return ""
 
 # ──────────────────────────────────────────────
-# 第1步B：仅根据原始簇句子做分类
+# 第1步B：根据簇摘要做章节分类
 # ──────────────────────────────────────────────
-def classify_topic_by_cluster(topic_name, sentences, model, doc_title):
+def classify_topic_by_cluster(topic_name, summary, model, doc_title):
     chapters_desc = "\n".join(
         f"  {ch['id']}. {ch['title']}：{ch['description']}"
         for ch in CLASSIFIABLE_CHAPTERS
     )
 
-    sentences_text = "\n".join(f"- {s}" for s in sentences)
+    summary = str(summary or "").strip()
+    if not summary:
+        return None, "簇摘要为空，未进行章节分类"
+
     title_rules = build_title_grounding_rules(doc_title)
 
-    prompt = f"""你现在只需要做一件事：根据一个主题簇的原始句子内容，判断它是否应该归入技术白皮书的某一章节。
+    prompt = f"""你现在只需要做一件事：根据一个主题簇的摘要，判断它是否应该归入技术白皮书的某一章节。
 
 {title_rules}
 
 【重要原则】
-1. 你必须直接依据"主题簇原始句子"进行判断，不能依据摘要进行判断。
+1. 你必须直接依据给定的"主题簇摘要"进行判断，不得引入摘要之外的信息。
 2. 只能从下面列出的可分类章节中选择；概述、背景和结论与展望不参与这里的分类。
 3. 每个 Topic 最多只能归入一个章节。
-4. 只有当这个簇里的"主要内容"明显都在讲某一章节对应的内容时，才允许归类。主要内容即可，也就是簇里的主要信息60%以上符合某一章既可以归类。
-5. 如果这个簇内容混杂、重心不明确、或者不能稳定归入某一章，chapter_id 必须填 null。
+4. 只有当摘要所概括的主要内容与某一章节功能明确一致时，才允许归类。
+5. 如果摘要内容混杂、重心不明确，或者不能稳定归入某一章，chapter_id 必须填 null。
 6. 不允许为了强行归类而勉强匹配；宁可不分，也不要错分。
 7. reason 必须明确说明：这个簇主要在讲什么，为什么属于该章；若不归类，也要说明为什么不够集中或不够匹配。
 
@@ -268,8 +271,8 @@ def classify_topic_by_cluster(topic_name, sentences, model, doc_title):
 请严格根据各章节的 description 描述来判断类别，不要参考 keywords：
 {chapters_desc}
 
-【主题簇原始句子】（{topic_name}）
-{sentences_text}
+【主题簇摘要】（{topic_name}）
+{summary}
 
 请严格判断：
 - 先看这个簇的主要内容是不是集中讲同一类东西；
@@ -286,7 +289,7 @@ def classify_topic_by_cluster(topic_name, sentences, model, doc_title):
         resp = client.chat.completions.create(
             model=model,
             messages=[
-                {"role": "system", "content": "你是严格的文本分类工具。你只能依据给定的主题簇原始句子进行分类，禁止依据摘要推断，禁止强行归类。"},
+                {"role": "system", "content": "你是严格的文本分类工具。你只能依据给定的主题簇摘要进行分类，不得补充摘要之外的信息，也不得强行归类。"},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.1,
@@ -308,7 +311,7 @@ def classify_topic_by_cluster(topic_name, sentences, model, doc_title):
         return None, ""
 
 # ──────────────────────────────────────────────
-# 第1步：对所有 Topic 先摘要，再按原始簇分类
+# 第1步：对所有 Topic 先摘要，再根据摘要分类
 # ──────────────────────────────────────────────
 def classify_all_topics(topics, model, doc_title):
     chapter_to_summaries = defaultdict(list)
@@ -327,9 +330,12 @@ def classify_all_topics(topics, model, doc_title):
             all_summaries.append((topic_name, summary))
             print(f"      摘要完成")
 
-        cid, reason = classify_topic_by_cluster(
-            topic_name, sentences, model, doc_title
-        )
+        if summary:
+            cid, reason = classify_topic_by_cluster(
+                topic_name, summary, model, doc_title
+            )
+        else:
+            cid, reason = None, "簇摘要生成失败，未进行章节分类"
 
         if cid is not None:
             chapter_title = CHAPTER_BY_ID[cid]["title"]
