@@ -240,9 +240,10 @@ def summarize_topic(topic_name, sentences, model, doc_title):
         return ""
 
 # ──────────────────────────────────────────────
-# 第1步B：根据簇摘要做章节分类
+# 第1步B：结合原始簇句子与簇摘要做章节分类
 # ──────────────────────────────────────────────
-def classify_topic_by_cluster(topic_name, summary, model, doc_title):
+def classify_topic_by_cluster(topic_name, sentences, summary, model, doc_title):
+    """Classify with the paper inputs P_cls(B_j, a_j, T, Y)."""
     chapters_desc = "\n".join(
         f"  {ch['id']}. {ch['title']}：{ch['description']}"
         for ch in CLASSIFIABLE_CHAPTERS
@@ -252,18 +253,22 @@ def classify_topic_by_cluster(topic_name, summary, model, doc_title):
     if not summary:
         return None, "簇摘要为空，未进行章节分类"
 
+    sentences_text = "\n".join(f"- {sentence}" for sentence in sentences)
+    if not sentences_text.strip():
+        return None, "簇内原始句子为空，未进行章节分类"
+
     title_rules = build_title_grounding_rules(doc_title)
 
-    prompt = f"""你现在只需要做一件事：根据一个主题簇的摘要，判断它是否应该归入技术白皮书的某一章节。
+    prompt = f"""你现在只需要做一件事：结合一个主题簇的原始句子与摘要，判断它是否应该归入技术白皮书的某一章节。
 
 {title_rules}
 
 【重要原则】
-1. 你必须直接依据给定的"主题簇摘要"进行判断，不得引入摘要之外的信息。
+1. 主题簇摘要用于把握簇的主要内容，原始句子用于核验摘要并补充必要上下文；分类必须同时依据二者，不得引入两者之外的信息。
 2. 只能从下面列出的可分类章节中选择；概述、背景和结论与展望不参与这里的分类。
 3. 每个 Topic 最多只能归入一个章节。
-4. 只有当摘要所概括的主要内容与某一章节功能明确一致时，才允许归类。
-5. 如果摘要内容混杂、重心不明确，或者不能稳定归入某一章，chapter_id 必须填 null。
+4. 只有当摘要所概括的主要内容得到原始句子支持，并且与某一章节功能明确一致时，才允许归类。
+5. 如果摘要与原始句子不一致、簇内容混杂、重心不明确，或者不能稳定归入某一章，chapter_id 必须填 null。
 6. 不允许为了强行归类而勉强匹配；宁可不分，也不要错分。
 7. reason 必须明确说明：这个簇主要在讲什么，为什么属于该章；若不归类，也要说明为什么不够集中或不够匹配。
 
@@ -273,6 +278,9 @@ def classify_topic_by_cluster(topic_name, summary, model, doc_title):
 
 【主题簇摘要】（{topic_name}）
 {summary}
+
+【主题簇原始句子】
+{sentences_text}
 
 请严格判断：
 - 先看这个簇的主要内容是不是集中讲同一类东西；
@@ -289,7 +297,7 @@ def classify_topic_by_cluster(topic_name, summary, model, doc_title):
         resp = client.chat.completions.create(
             model=model,
             messages=[
-                {"role": "system", "content": "你是严格的文本分类工具。你只能依据给定的主题簇摘要进行分类，不得补充摘要之外的信息，也不得强行归类。"},
+                {"role": "system", "content": "你是严格的文本分类工具。你必须同时依据给定的主题簇原始句子和簇摘要进行分类，不得补充输入之外的信息，也不得强行归类。"},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.1,
@@ -311,7 +319,7 @@ def classify_topic_by_cluster(topic_name, summary, model, doc_title):
         return None, ""
 
 # ──────────────────────────────────────────────
-# 第1步：对所有 Topic 先摘要，再根据摘要分类
+# 第1步：对所有 Topic 先摘要，再结合原始句子与摘要分类
 # ──────────────────────────────────────────────
 def classify_all_topics(topics, model, doc_title):
     chapter_to_summaries = defaultdict(list)
@@ -332,7 +340,7 @@ def classify_all_topics(topics, model, doc_title):
 
         if summary:
             cid, reason = classify_topic_by_cluster(
-                topic_name, summary, model, doc_title
+                topic_name, sentences, summary, model, doc_title
             )
         else:
             cid, reason = None, "簇摘要生成失败，未进行章节分类"
