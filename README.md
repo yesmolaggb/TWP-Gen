@@ -135,15 +135,13 @@ python twpgen_settings.py --shell
 |---|---|---|
 | `OPENAI_API_KEY` | Key for an OpenAI-compatible LLM endpoint | Outline generation, article generation, or evaluation |
 | `OPENAI_BASE_URL` | OpenAI-compatible endpoint | Using a hosted or local compatible service |
-| `TWPGEN_LLM_MODEL` | Default model served by that endpoint | Any LLM stage |
+| `TWPGEN_LLM_MODEL` | Model used by all LLM stages | Outline generation, article generation, and evaluation |
 | `TAVILY_API_KEY` / `TAVILY_API_KEYS` | One key or a key pool for web retrieval | Tavily retrieval is enabled |
-| `TWPGEN_TAVILY_KEY_FILE` | File containing one Tavily key per line | File-based key-pool configuration |
-| `ARTICLE_LLM_MODEL` | Optional article-generation model override | Generator differs from the default model |
-| `ARTICLE_ENABLE_THINKING` | Enables model reasoning when supported | Reproducing a reasoning-enabled generator |
 | `TWPGEN_TOPIC_FILE` | Batch topic list | Overriding `dataset/whitepaper_topics.txt` |
 
-Model paths, runtime environments, resource dictionaries, output directories, and
-hyperparameters are configured once in `twpgen_config.json`.
+By default, every LLM stage uses `TWPGEN_LLM_MODEL`. Model paths, runtime
+environments, resource dictionaries, output directories, and advanced overrides
+are configured once in `twpgen_config.json`.
 
 ## Running TWP-Gen
 
@@ -237,24 +235,6 @@ python dataset/evaluation/run_summary.py \
 When `article`, `references`, and `diagnostics` are sibling directories, the latter
 two are detected automatically.
 
-## Reproducing the paper analyses
-
-The scripts below are executable experiment entry points. Some require intermediate
-features or scored baseline outputs that are too large or not licensed for release.
-
-| Analysis | Command | Required local input | Main output |
-|---|---|---|---|
-| Cluster-number sensitivity | `python experiments/cluster_number/run_sensitivity.py --dataset-root dataset --topics-file dataset/whitepaper_topics.json --k 20 30 40 50 60 70 80` | Per-topic `clusters_/embed_0.pt` | CSV/JSON and figure |
-| DuEE clustering algorithms | `python experiments/duee/compare_clustering_algorithms.py --input <arrays.npz> --output-dir output/duee_algorithms` | NPZ with `labels` and `gesi_embeddings` | ARI/NMI/ACC/B³ F1 table |
-| Feature-view runs | `python experiments/run_feature_ablation.py --topic <topic> --dataset-root dataset` | Prepared per-topic feature bank | Variant run manifest |
-| Ablation aggregation | `python experiments/ablation_analysis.py --results-root <eval-root> --backbone 32b` | Completed variant scores | JSON/CSV/Markdown |
-| Statistical significance | `python experiments/statistical_significance.py --results-root <eval-root> --backbone 32b` | Topic-level paired scores | Wilcoxon/Holm table and CI figure |
-| Cross-domain analysis | `python experiments/domain_analysis.py --results-root <eval-root> --topics dataset/whitepaper_topics.json --backbone 32b` | Topic-level scores | Eight-domain table |
-
-For DuEE, the repository implements standard ARI, NMI, optimal one-to-one Hungarian
-ACC, and B³ F1. All four values are reported after multiplication by 100; higher is
-better.
-
 ## Results reported in the paper
 
 The following compact table mirrors the paper's overall comparison. `Avg.` is the
@@ -272,13 +252,3 @@ achieves 50.55 ARI, 73.94 NMI, 58.19 ACC, and 67.21 B³ F1, compared with 34.03,
 60 white-paper topics yield Holm-adjusted Wilcoxon `p < 0.001`; against the strongest
 baseline, the mean difference is 0.354 with a 95% confidence interval of
 `[0.275, 0.428]`.
-
-## Reproducibility notes
-
-- Random seeds and experiment-specific parameters are exposed by the experiment
-  scripts; use `--help` on any entry point for the full interface.
-- The same central configuration is imported by retrieval, outline, generation, and
-  evaluation code. Do not add machine-specific paths or keys directly to modules.
-- Generated outputs and large intermediate artifacts are deliberately excluded from
-  Git. Their expected locations are documented above and in each script's help text.
-- The source code is available at <https://github.com/yesmolaggb/TWP-Gen>.

@@ -129,15 +129,12 @@ python twpgen_settings.py --shell
 |---|---|---|
 | `OPENAI_API_KEY` | OpenAI 兼容接口的密钥 | 大纲、正文生成或自动评价 |
 | `OPENAI_BASE_URL` | OpenAI 兼容接口地址 | 使用云端或本地兼容服务 |
-| `TWPGEN_LLM_MODEL` | 接口提供的默认模型名 | 所有 LLM 阶段 |
+| `TWPGEN_LLM_MODEL` | 所有 LLM 阶段共用的模型 | 大纲、正文生成和自动评价 |
 | `TAVILY_API_KEY` / `TAVILY_API_KEYS` | 单个检索密钥或密钥池 | 启用 Tavily 检索 |
-| `TWPGEN_TAVILY_KEY_FILE` | 每行一个 Tavily 密钥的文件 | 从文件读取密钥池 |
-| `ARTICLE_LLM_MODEL` | 单独覆盖正文生成模型 | 正文模型与默认模型不同时 |
-| `ARTICLE_ENABLE_THINKING` | 在模型支持时启用推理 | 复现开启推理的生成设置 |
 | `TWPGEN_TOPIC_FILE` | 批量题目清单 | 替换默认 60 题清单时 |
 
-模型路径、运行环境、资源词典、输出路径和超参数只需在根目录的
-`twpgen_config.json` 中配置一次。
+默认情况下，大纲、正文生成和自动评价统一使用 `TWPGEN_LLM_MODEL`。模型路径、运行
+环境、资源词典、输出路径及高级覆盖项只需在根目录的 `twpgen_config.json` 中配置一次。
 
 ## 运行方法
 
@@ -225,23 +222,6 @@ python dataset/evaluation/run_summary.py \
 
 当 `article`、`references` 和 `diagnostics` 为同级目录时，后两个目录可以自动识别。
 
-## 复现论文实验
-
-下表中的脚本都是可直接运行的实验入口。部分实验需要体积较大或因许可原因未发布的
-中间特征和已评分基线结果。
-
-| 实验 | 命令 | 本地所需输入 | 主要输出 |
-|---|---|---|---|
-| 聚类数量敏感性 | `python experiments/cluster_number/run_sensitivity.py --dataset-root dataset --topics-file dataset/whitepaper_topics.json --k 20 30 40 50 60 70 80` | 各题目的 `clusters_/embed_0.pt` | CSV/JSON 与图 |
-| DuEE 聚类算法比较 | `python experiments/duee/compare_clustering_algorithms.py --input <arrays.npz> --output-dir output/duee_algorithms` | 含 `labels` 和 `gesi_embeddings` 的 NPZ | ARI/NMI/ACC/B³ F1 表 |
-| 特征消融运行 | `python experiments/run_feature_ablation.py --topic <题目> --dataset-root dataset` | 已准备的题目特征文件 | 各变体运行清单 |
-| 消融结果汇总 | `python experiments/ablation_analysis.py --results-root <评价目录> --backbone 32b` | 已完成的各变体分数 | JSON/CSV/Markdown |
-| 统计显著性 | `python experiments/statistical_significance.py --results-root <评价目录> --backbone 32b` | 逐题目配对分数 | Wilcoxon/Holm 表与置信区间图 |
-| 跨领域分析 | `python experiments/domain_analysis.py --results-root <评价目录> --topics dataset/whitepaper_topics.json --backbone 32b` | 逐题目分数 | 八领域结果表 |
-
-DuEE 实验实现标准 ARI、NMI、基于 Hungarian 最优一一匹配的 ACC，以及 B³ F1。四项
-指标均乘以 100 后报告，数值越高表示预测聚类与参考类别的一致性越强。
-
 ## 论文报告结果
 
 下表与论文总体结果保持一致，`Avg.` 为十项指标的非加权平均值。
@@ -256,10 +236,3 @@ DuEE 实验实现标准 ARI、NMI、基于 Hungarian 最优一一匹配的 ACC�
 58.19 ACC 和 67.21 B³ F1；仅使用句子语义时分别为 34.03、56.33、47.54 和
 53.82。对 60 个白皮书题目的成对比较得到 Holm 校正后的 Wilcoxon `p < 0.001`；
 与最强基线相比，平均提升为 0.354，95% 置信区间为 `[0.275, 0.428]`。
-
-## 复现说明
-
-- 随机种子和实验参数均由实验脚本暴露，可使用 `--help` 查看完整接口。
-- 检索、大纲、正文生成和评价都读取同一份根目录配置，请勿在模块中写入机器路径或密钥。
-- 生成结果与大型中间文件不会提交到 Git，其预期位置已在上文和脚本帮助中说明。
-- 源代码地址：<https://github.com/yesmolaggb/TWP-Gen>。
