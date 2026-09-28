@@ -6,7 +6,7 @@ TWP-Gen information collection stage.
 Flow:
 1. Read dataset/whitepaper_topics.txt, or accept --topic for a single topic.
 2. Generate search queries with the configured OpenAI-compatible LLM.
-3. Search with Tavily, optionally combined with a local Google Alerts service.
+3. Search with Tavily.
 4. Fetch and clean web pages concurrently.
 5. Save the raw collection report and write corpus.txt under TWPGEN_DATASET_ROOT.
 """
@@ -148,9 +148,6 @@ def get_tavily_client() -> tuple["TavilyClient", "TavilyKeyPool"]:
 
 
 
-# Google Alerts API service
-GOOGLE_ALERTS_API_URL = os.environ.get("TWPGEN_GOOGLE_ALERTS_API_URL", "http://localhost:5000")
-
 PROMPT_PATH = COLLECTOR_ROOT / "prompt" / "search.txt"
 EXTRACT_PROMPT_PATH = COLLECTOR_ROOT / "prompt" / "extract.txt"
 
@@ -172,7 +169,7 @@ class SearchResult:
     title: str
     url: str
     content: str
-    source: str = "tavily"  # "tavily" or "google_alerts"
+    source: str = "tavily"
 
 # ─────────────────────────────────────────────────────
 # 切块器
@@ -341,7 +338,7 @@ SKIP_DOMAINS = {
 
 
 def fetch_page(url: str) -> str:
-    """用 Tavily extract API 抓取 URL 正文（同时覆盖 Tavily 和 Google Alerts 的 URL）"""
+    """用 Tavily extract API 抓取 URL 正文。"""
     pool = get_tavily_pool()
     key = pool.get_key()
 
@@ -478,70 +475,6 @@ def clean_text(text: str) -> str:
 
     return " ".join(cleaned_lines).strip()
 
-# ═══════════════════════════════════════════════════════
-# Google Alerts API 检测与调用
-# ═══════════════════════════════════════════════════════
-
-def check_google_alerts_api() -> bool:
-    """检测 Google Alerts API 服务是否启动"""
-    try:
-        resp = requests.get(f"{GOOGLE_ALERTS_API_URL}/health", timeout=3)
-        return resp.status_code == 200
-    except Exception:
-        return False
-
-
-def search_via_api(keywords: List[str], target_count: int = 10) -> Dict[str, List[str]]:
-    """
-    通过 API 搜索，返回 {keyword: [urls]} 字典
-    """
-    try:
-        resp = requests.post(
-            f"{GOOGLE_ALERTS_API_URL}/search",
-            json={"keywords": keywords, "target_count": target_count},
-            timeout=600
-        )
-        if resp.status_code == 200:
-            return resp.json().get("results", {})
-        return {}
-    except (Exception, KeyboardInterrupt, SystemExit) as e:
-        log(f"  [API] 调用失败: {e}")
-        return {}
-
-
-def run_search_google_alerts(queries: List[str]) -> Dict[str, List[SearchResult]]:
-    """
-    通过 API 执行 Google Alerts 搜索
-    """
-    all_results: Dict[str, List[SearchResult]] = {}
-    search_id = 1
-
-    # 批量调用 API
-    api_results = search_via_api(queries, TOP_N)
-
-    for query in queries:
-        urls = api_results.get(query, [])
-        items = []
-        for url in urls:
-            items.append(SearchResult(
-                id=search_id,
-                title="",  # Google Alerts 不返回标题
-                url=url,
-                content="",
-                source="google_alerts",
-            ))
-            search_id += 1
-        all_results[query] = items
-        log(f"  [Google Alerts] {query[:50]} → {len(items)} 条")
-
-    return all_results
-
-
-def fetch_article_google_alerts(url: str) -> str:
-    """Google Alerts 方式：统一走 fetch_page（Tavily extract API 兜底）"""
-    return fetch_page(url)
-
-
 # ─────────────────────────────────────────────────────
 # Qwen3：生成搜索关键词
 # ─────────────────────────────────────────────────────
@@ -647,14 +580,14 @@ def run_search(queries: List[str]) -> Dict[str, List[SearchResult]]:
 # 结果明细文本
 # ─────────────────────────────────────────────────────
 
-def build_result_report(user_question: str, crawled_results: Dict[str, List[Dict]], use_dual_search: bool) -> str:
+def build_result_report(user_question: str, crawled_results: Dict[str, List[Dict]]) -> str:
     """
     生成保存到 information_collector/result/题目.txt 的文本
     """
     lines = []
     lines.append(user_question)
     lines.append("")
-    lines.append(f"搜索模式：{'双重搜索' if use_dual_search else '单一搜索（Tavily）'}")
+    lines.append("搜索模式：Tavily")
     lines.append("")
     lines.append("关键词拆分：")
 
@@ -700,8 +633,7 @@ def _process_single_url(args):
         aid = article_id_ref["next_id"]
         article_id_ref["next_id"] += 1
 
-    source_tag = "Google Alerts" if item.source == "google_alerts" else "Tavily"
-    lq.put(f"  抓取 [{aid}] {item.url[:70]}... [{source_tag}]")
+    lq.put(f"  抓取 [{aid}] {item.url[:70]}... [Tavily]")
 
     text = fetch_page(item.url)
 
@@ -746,7 +678,7 @@ def _drain_log_queue(lq: queue.Queue):
             break
 
 
-def save_results(user_question: str, all_results: Dict[str, List[SearchResult]], use_dual_search: bool = False):
+def save_results(user_question: str, all_results: Dict[str, List[SearchResult]]):
     """
     每个题目保存两份内容：
     1. information_collector/result/题目.txt
@@ -756,7 +688,7 @@ def save_results(user_question: str, all_results: Dict[str, List[SearchResult]],
 
     逻辑：
     - 10 线程并发爬取所有 URL（fetch_page + clean_text + extract_article）
-    - Google Alerts 和 Tavily 的 URL 统一走 fetch_page（基于 Tavily extract API）
+    - 所有 URL 统一走 fetch_page（基于 Tavily extract API）
     """
     crawled_results: Dict[str, List[Dict]] = {}
     all_chunks: List[str] = []
@@ -801,7 +733,7 @@ def save_results(user_question: str, all_results: Dict[str, List[SearchResult]],
 
     RESULT_DIR.mkdir(parents=True, exist_ok=True)
     result_file = RESULT_DIR / f"{safe_name}.txt"
-    report_text = build_result_report(user_question, crawled_results, use_dual_search)
+    report_text = build_result_report(user_question, crawled_results)
     result_file.write_text(report_text, encoding="utf-8")
     log(f"  → 结果明细已写入 {result_file}")
 
@@ -823,12 +755,7 @@ def process_topic(user_question: str):
     log("=" * 100)
     log(f"开始处理题目：{user_question}")
 
-    # 检测 Google Alerts API 是否可用
-    use_dual_search = check_google_alerts_api()
-    if use_dual_search:
-        log("  → Google Alerts API 已启动，使用双重搜索模式")
-    else:
-        log("  → Google Alerts API 未启动，使用单一搜索模式（Tavily）")
+    log("  → 使用 Tavily 搜索")
 
     log("Step 1/3 - Qwen3 生成搜索关键词...")
     queries = generate_queries(user_question)
@@ -843,23 +770,8 @@ def process_topic(user_question: str):
     log("Step 2/3 - 执行搜索...")
     all_results = run_search(queries)
 
-    # 如果 Google Alerts API 可用，执行双重搜索
-    if use_dual_search:
-        log("  [Google Alerts API] 搜索...")
-        alerts_results = run_search_google_alerts(queries)
-
-        # 合并结果，按 URL 去重
-        for query in queries:
-            existing_urls = {item.url for item in all_results.get(query, [])}
-            for item in alerts_results.get(query, []):
-                if item.url not in existing_urls:
-                    all_results.setdefault(query, []).append(item)
-                    existing_urls.add(item.url)
-    else:
-        log("  [跳过] Google Alerts API 未启动")
-
     log("Step 3/3 - 抓取页面内容并保存...")
-    save_results(user_question, all_results, use_dual_search)
+    save_results(user_question, all_results)
 
     log(f"完成：{user_question}")
     log("=" * 100)
