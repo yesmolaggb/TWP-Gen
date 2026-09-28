@@ -31,6 +31,8 @@ from twpgen_settings import (  # noqa: F401  (explicit, helps editors/tools)
     duee_dir,
     evaluation_code_dir,
     evaluation_dataset_dir,
+    evaluation_primary_model,
+    evaluation_robustness_model,
     export_env,
     feature_path,
     gae_feature_path,

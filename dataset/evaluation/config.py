@@ -33,7 +33,9 @@ except Exception:  # pragma: no cover - keep the module usable stand-alone
     repo_config = None  # type: ignore[assignment]
 
 
-DEFAULT_MODEL = repo_config.llm.model if repo_config else "qwen3-32b"
+DEFAULT_MODEL = (
+    repo_config.evaluation_primary_model if repo_config else "qwen3-32b"
+)
 DEFAULT_BASE_URL = (
     repo_config.llm.base_url
     if repo_config
@@ -122,9 +124,8 @@ def resolve_settings(
     )
     resolved_model = _first_non_empty(
         model,
-        os.environ.get("ARTICLE_LLM_MODEL"),
-        os.environ.get("TWPGEN_LLM_MODEL"),
-        getattr(config_llm, "model", None),
+        os.environ.get("TWPGEN_EVAL_MODEL"),
+        getattr(repo_config, "evaluation_primary_model", None) if repo_config else None,
         DEFAULT_MODEL,
     )
 

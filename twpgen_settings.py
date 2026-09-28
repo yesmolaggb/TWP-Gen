@@ -16,6 +16,10 @@ Every stage reads this module:
 
 * ``outline_generator/*`` via ``outline_generator/twpgen_config.py`` (thin re-export)
 * ``article_generator/src/post_outline/*`` via ``post_outline/llm_settings.py``
+
+The built-in paper-aligned generation default is Qwen3-32B with reasoning
+enabled. Qwen3-14B runs should explicitly disable reasoning. The evaluator has
+its own setting so DeepSeek-V3 cannot accidentally enter the generation path.
 """
 
 from __future__ import annotations
@@ -303,7 +307,7 @@ class LLMSettings:
         base_url: str,
         model: str,
         timeout: float = 360.0,
-        enable_thinking: bool = False,
+        enable_thinking: bool = True,
     ) -> None:
         self.api_key = api_key
         self.base_url = base_url
@@ -339,7 +343,23 @@ llm = LLMSettings(
     ),
     model=str(_get(("ARTICLE_LLM_MODEL", "TWPGEN_LLM_MODEL"), "llm.model", "qwen3-32b")),
     timeout=_float(_get(("TWPGEN_LLM_TIMEOUT",), "llm.timeout", 360.0), 360.0),
-    enable_thinking=_bool(_get(("ARTICLE_ENABLE_THINKING",), "llm.enable_thinking", False)),
+    enable_thinking=_bool(
+        _get(("ARTICLE_ENABLE_THINKING", "TWPGEN_ENABLE_THINKING"), "llm.enable_thinking", True),
+        True,
+    ),
+)
+
+# The paper uses Qwen3-32B as the primary evaluator. DeepSeek-V3 is retained
+# only as the optional robustness evaluator and is never a generation default.
+evaluation_primary_model = str(
+    _get(("TWPGEN_EVAL_MODEL",), "evaluation.primary_model", "qwen3-32b")
+)
+evaluation_robustness_model = str(
+    _get(
+        ("TWPGEN_ROBUSTNESS_EVAL_MODEL",),
+        "evaluation.robustness_model",
+        "deepseek-v3",
+    )
 )
 
 
@@ -396,6 +416,8 @@ def as_dict() -> dict[str, Any]:
         "spacy_model": spacy_model,
         "gpu_ids": gpu_id,
         "llm": llm.as_dict(),
+        "evaluation_primary_model": evaluation_primary_model,
+        "evaluation_robustness_model": evaluation_robustness_model,
         "topics": topics,
         "source_dir_aliases": source_dir_aliases,
     }
@@ -425,6 +447,12 @@ def export_env() -> str:
         "TWPGEN_DOCGEN_ENV": docgen_env,
         "TWPGEN_PIPELINE_ENV": pipeline_env,
         "TWPGEN_ARTICLE_ENV": article_env,
+        "TWPGEN_LLM_MODEL": llm.model,
+        "TWPGEN_ENABLE_THINKING": str(llm.enable_thinking).lower(),
+        "ARTICLE_ENABLE_THINKING": str(llm.enable_thinking).lower(),
+        "OPENAI_BASE_URL": llm.base_url,
+        "TWPGEN_LLM_TIMEOUT": str(llm.timeout),
+        "TWPGEN_EVAL_MODEL": evaluation_primary_model,
     }
     return "\n".join(f"export {key}={value!r}" for key, value in values.items())
 

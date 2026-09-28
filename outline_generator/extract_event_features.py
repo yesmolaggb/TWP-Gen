@@ -11,12 +11,16 @@ import concurrent.futures
 from threading import Lock
 import twpgen_config as project_args
 
-# 初始化OpenAI客户端（请替换为有效API密钥）
-DEFAULT_LLM_MODEL = os.environ.get("TWPGEN_LLM_MODEL", "deepseek-v3")
+DEFAULT_LLM_MODEL = project_args.llm.model
+LLM_ENABLE_THINKING = project_args.llm.enable_thinking
 
 def build_llm_client():
-    api_key = os.environ.get("OPENAI_API_KEY")
-    base_url = os.environ.get("OPENAI_BASE_URL") or os.environ.get("OPENAI_API_BASE")
+    api_key = os.environ.get("OPENAI_API_KEY") or project_args.llm.api_key
+    base_url = (
+        os.environ.get("OPENAI_BASE_URL")
+        or os.environ.get("OPENAI_API_BASE")
+        or project_args.llm.base_url
+    )
     if not api_key:
         raise RuntimeError("OPENAI_API_KEY is not set. Copy .env.example to .env and configure your local API key.")
     kwargs = {"api_key": api_key}
@@ -90,7 +94,8 @@ def extract_events_from_sentence(sentence, svos=None, model=DEFAULT_LLM_MODEL):
                 {"role": "system", "content": "你是一个专业的事件抽取助手，擅长分析文本中的核心事件。你必须始终返回严格的JSON格式，不添加任何额外的解释或Markdown标记。"},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.2
+            temperature=0.2,
+            extra_body={"enable_thinking": LLM_ENABLE_THINKING},
         )
 
         result = response.choices[0].message.content

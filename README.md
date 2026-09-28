@@ -135,13 +135,21 @@ python twpgen_settings.py --shell
 |---|---|---|
 | `OPENAI_API_KEY` | Key for an OpenAI-compatible LLM endpoint | Outline generation, article generation, or evaluation |
 | `OPENAI_BASE_URL` | OpenAI-compatible endpoint | Using a hosted or local compatible service |
-| `TWPGEN_LLM_MODEL` | Model used by all LLM stages | Outline generation, article generation, and evaluation |
+| `TWPGEN_LLM_MODEL` | Generation model shared by collection, feature extraction, outline, and article stages | Overriding the default Qwen3-32B generator |
+| `TWPGEN_ENABLE_THINKING` | Generation reasoning switch | `true` for Qwen3-32B; `false` for Qwen3-14B |
+| `TWPGEN_EVAL_MODEL` | Primary evaluator | Overriding the default Qwen3-32B evaluator |
 | `TAVILY_API_KEY` / `TAVILY_API_KEYS` | One key or a key pool for web retrieval | Tavily retrieval is enabled |
 | `TWPGEN_TOPIC_FILE` | Batch topic list | Overriding `dataset/whitepaper_topics.txt` |
 
-By default, every LLM stage uses `TWPGEN_LLM_MODEL`. Model paths, runtime
-environments, resource dictionaries, output directories, and advanced overrides
-are configured once in `twpgen_config.json`.
+All generation stages read the same model and reasoning switch from the root
+configuration. The paper-aligned default is Qwen3-32B with reasoning enabled.
+For the Qwen3-14B configuration, set `TWPGEN_LLM_MODEL=qwen3-14b` and
+`TWPGEN_ENABLE_THINKING=false`. Evaluation is configured separately: Qwen3-32B
+is the primary evaluator, while DeepSeek-V3 is selected explicitly with the
+evaluation command's `--model deepseek-v3` option only for the robustness check.
+Model paths, runtime environments, resource
+dictionaries, and output directories are configured once in
+`twpgen_config.json`.
 
 ## Running TWP-Gen
 

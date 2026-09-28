@@ -129,12 +129,18 @@ python twpgen_settings.py --shell
 |---|---|---|
 | `OPENAI_API_KEY` | OpenAI 兼容接口的密钥 | 大纲、正文生成或自动评价 |
 | `OPENAI_BASE_URL` | OpenAI 兼容接口地址 | 使用云端或本地兼容服务 |
-| `TWPGEN_LLM_MODEL` | 所有 LLM 阶段共用的模型 | 大纲、正文生成和自动评价 |
+| `TWPGEN_LLM_MODEL` | 采集、特征抽取、大纲和正文阶段共用的生成模型 | 覆盖默认的 Qwen3-32B 生成模型 |
+| `TWPGEN_ENABLE_THINKING` | 生成阶段推理开关 | Qwen3-32B 设为 `true`；Qwen3-14B 设为 `false` |
+| `TWPGEN_EVAL_MODEL` | 主评价模型 | 覆盖默认的 Qwen3-32B 评价模型 |
 | `TAVILY_API_KEY` / `TAVILY_API_KEYS` | 单个检索密钥或密钥池 | 启用 Tavily 检索 |
 | `TWPGEN_TOPIC_FILE` | 批量题目清单 | 替换默认 60 题清单时 |
 
-默认情况下，大纲、正文生成和自动评价统一使用 `TWPGEN_LLM_MODEL`。模型路径、运行
-环境、资源词典、输出路径及高级覆盖项只需在根目录的 `twpgen_config.json` 中配置一次。
+所有生成阶段都从根配置读取同一个模型和推理开关。与论文一致的默认配置为
+Qwen3-32B 并开启推理；运行 Qwen3-14B 时，将 `TWPGEN_LLM_MODEL` 设为
+`qwen3-14b`，并将 `TWPGEN_ENABLE_THINKING` 设为 `false`。评价模型单独配置：
+Qwen3-32B 是主评价模型；只有运行稳健性评价时，才通过评价命令的
+`--model deepseek-v3` 显式选择 DeepSeek-V3。模型路径、
+运行环境、资源词典和输出路径仍统一写在根目录的 `twpgen_config.json` 中。
 
 ## 运行方法
 

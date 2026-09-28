@@ -11,12 +11,16 @@ import sys
 import pickle as pk
 import twpgen_config as project_args
 
-# 阿里云API配置
-DEFAULT_LLM_MODEL = os.environ.get("TWPGEN_LLM_MODEL", "deepseek-v3")
+DEFAULT_LLM_MODEL = project_args.llm.model
+LLM_ENABLE_THINKING = project_args.llm.enable_thinking
 
 def build_llm_client():
-    api_key = os.environ.get("OPENAI_API_KEY")
-    base_url = os.environ.get("OPENAI_BASE_URL") or os.environ.get("OPENAI_API_BASE")
+    api_key = os.environ.get("OPENAI_API_KEY") or project_args.llm.api_key
+    base_url = (
+        os.environ.get("OPENAI_BASE_URL")
+        or os.environ.get("OPENAI_API_BASE")
+        or project_args.llm.base_url
+    )
     if not api_key:
         raise RuntimeError("OPENAI_API_KEY is not set. Copy .env.example to .env and configure your local API key.")
     kwargs = {"api_key": api_key}
@@ -54,7 +58,8 @@ def summarize_sentence_task(args):
                     {"role": "system", "content": "你是一个专业的文本精简助手，擅长提取句子中的关键信息，去除冗余内容，使句子更加简洁。"},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.2  # 降低温度以获得更确定性的输出
+                temperature=0.2,  # 降低温度以获得更确定性的输出
+                extra_body={"enable_thinking": LLM_ENABLE_THINKING},
             )
 
             summarized = response.choices[0].message.content.strip()

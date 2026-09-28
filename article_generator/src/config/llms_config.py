@@ -25,7 +25,7 @@ _PROJECT_ROOT = Path(os.environ.get("TWPGEN_ROOT", Path(__file__).resolve().pare
 _load_env_file(_PROJECT_ROOT / ".env")
 
 
-def _env_bool(name: str, default: bool = False) -> bool:
+def _env_bool(name: str, default: bool = True) -> bool:
     value = os.environ.get(name)
     if value is None:
         return default
@@ -44,7 +44,7 @@ class BaseLLMConfig:
     max_tokens: int = 32769
     context_window: int = 32769
     temperature: float = 0.6
-    enable_thinking: bool = False
+    enable_thinking: bool = True
 
     @classmethod
     def from_dict(cls: Type[T], config_dict: Dict[str, str]) -> T:
@@ -57,7 +57,7 @@ class BaseLLMConfig:
                 max_tokens=int(config_dict.get('max_tokens', 32769)),
                 context_window=int(config_dict.get('context_window', 32769)),
                 temperature=float(config_dict.get('temperature', 0.6)),
-                enable_thinking=_env_bool('ARTICLE_ENABLE_THINKING', bool(config_dict.get('enable_thinking', False))),
+                enable_thinking=_env_bool('ARTICLE_ENABLE_THINKING', bool(config_dict.get('enable_thinking', True))),
             )
         except KeyError as e:
             raise ValueError(f"Configuration missing required field: {e}") from e

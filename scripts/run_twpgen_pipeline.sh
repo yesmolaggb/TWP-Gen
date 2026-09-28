@@ -36,7 +36,7 @@ BASE_STATE_DIR="$TWPGEN_ROOT/.pipeline_state"
 BASE_LOG_DIR="$TWPGEN_ROOT/logs"
 DATASET_BASE_DIR="$TWPGEN_ROOT/dataset"
 
-TOPIC_FILE="${TWPGEN_TOPIC_FILE:-$SEARCH_REF_ROOT/topic.txt}"
+TOPIC_FILE="${TWPGEN_TOPIC_FILE:-$TWPGEN_ROOT/dataset/whitepaper_topics.txt}"
 
 if [[ "$SEARCH_REF_ROOT" != /* ]]; then
   SEARCH_REF_ROOT="$TWPGEN_ROOT/${SEARCH_REF_ROOT#./}"
@@ -313,7 +313,7 @@ run_parallel_branches() {
   fi
 }
 
-# ── 读取 topic.txt，返回题目列表（跳过空行）──
+# ── 读取题目清单，返回题目列表（跳过空行）──
 load_topics() {
   local topic_file="$1"
   if [[ ! -f "$topic_file" ]]; then

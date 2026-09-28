@@ -4,7 +4,7 @@ collect_references.py
 TWP-Gen information collection stage.
 
 Flow:
-1. Read information_collector/topic.txt, or accept --topic for a single topic.
+1. Read dataset/whitepaper_topics.txt, or accept --topic for a single topic.
 2. Generate search queries with the configured OpenAI-compatible LLM.
 3. Search with Tavily, optionally combined with a local Google Alerts service.
 4. Fetch and clean web pages concurrently.
@@ -23,6 +23,7 @@ from pathlib import Path
 from dataclasses import dataclass
 from typing import List, Dict
 import os
+import sys
 from openai import OpenAI
 from tavily import TavilyClient
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -35,6 +36,8 @@ from typing import List, Dict
 
 COLLECTOR_ROOT = Path(__file__).resolve().parent
 PROJECT_ROOT = Path(os.environ.get("TWPGEN_ROOT", COLLECTOR_ROOT.parent)).resolve()
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 
 def _load_env_file(path: Path):
@@ -53,9 +56,16 @@ def _load_env_file(path: Path):
 
 _load_env_file(PROJECT_ROOT / ".env")
 
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
-OPENAI_BASE_URL = os.environ.get("OPENAI_BASE_URL") or os.environ.get("OPENAI_API_BASE")
-LLM_MODEL = os.environ.get("TWPGEN_LLM_MODEL", "qwen3-max")
+import twpgen_settings as project_settings
+
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY") or project_settings.llm.api_key
+OPENAI_BASE_URL = (
+    os.environ.get("OPENAI_BASE_URL")
+    or os.environ.get("OPENAI_API_BASE")
+    or project_settings.llm.base_url
+)
+LLM_MODEL = project_settings.llm.model
+LLM_ENABLE_THINKING = project_settings.llm.enable_thinking
 
 
 def make_llm_client() -> OpenAI:
@@ -144,7 +154,9 @@ GOOGLE_ALERTS_API_URL = os.environ.get("TWPGEN_GOOGLE_ALERTS_API_URL", "http://l
 PROMPT_PATH = COLLECTOR_ROOT / "prompt" / "search.txt"
 EXTRACT_PROMPT_PATH = COLLECTOR_ROOT / "prompt" / "extract.txt"
 
-TOPIC_FILE = Path(os.environ.get("TWPGEN_TOPIC_FILE", COLLECTOR_ROOT / "topic.txt")).expanduser()
+TOPIC_FILE = Path(
+    os.environ.get("TWPGEN_TOPIC_FILE", project_settings.topic_file)
+).expanduser()
 RESULT_DIR = Path(os.environ.get("TWPGEN_COLLECTOR_RESULT_DIR", COLLECTOR_ROOT / "result")).expanduser()
 DATASET_DIR = Path(os.environ.get("TWPGEN_DATASET_ROOT", PROJECT_ROOT / "dataset")).expanduser()
 
@@ -272,6 +284,7 @@ def extract_article(text: str) -> str:
             ],
             temperature=0.1,
             max_tokens=4000,
+            extra_body={"enable_thinking": LLM_ENABLE_THINKING},
         )
         extracted = resp.choices[0].message.content.strip()
         # 清洗 LLM 输出中自身残留的完全重复行
@@ -283,7 +296,7 @@ def extract_article(text: str) -> str:
 
 def load_topics(topic_file: Path) -> List[str]:
     """
-    读取 topic.txt，每一行作为一个题目
+    读取配置中的题目清单，每一行作为一个题目
     自动跳过空行
     """
     if not topic_file.exists():
@@ -543,7 +556,7 @@ def generate_queries(user_question: str) -> List[str]:
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_question},
         ],
-        extra_body={"enable_thinking": True},
+        extra_body={"enable_thinking": LLM_ENABLE_THINKING},
         stream=True,
     )
 
@@ -862,7 +875,7 @@ def main():
         "--topic",
         type=str,
         default=None,
-        help="指定单个题目（不传则遍历 topic.txt 所有题目）",
+        help="指定单个题目（不传则遍历配置中的题目清单）",
     )
     args = parser.parse_args()
 
@@ -874,7 +887,7 @@ def main():
             log(f"✗ 处理失败：{args.topic}")
             log(f"  错误信息：{e}")
     else:
-        # 全量模式：遍历 topic.txt 所有题目
+        # 全量模式：遍历配置中的题目清单
         topics = load_topics(TOPIC_FILE)
 
         if not topics:

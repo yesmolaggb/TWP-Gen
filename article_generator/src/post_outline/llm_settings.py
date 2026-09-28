@@ -155,7 +155,7 @@ def resolve_settings(
         elif repo_llm is not None:
             enable_thinking = bool(repo_llm.enable_thinking)
         else:
-            enable_thinking = False
+            enable_thinking = True
 
     return LLMSettings(
         api_key=resolved_key,

@@ -71,7 +71,12 @@
     "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
     "model": "qwen3-32b",
     "timeout": 360,
-    "enable_thinking": false
+    "enable_thinking": true
+  },
+
+  "evaluation": {
+    "primary_model": "qwen3-32b",
+    "robustness_model": "deepseek-v3"
   },
 
   "runtime": {

@@ -10,11 +10,16 @@ import twpgen_config as project_args
 # ──────────────────────────────────────────────
 # 客户端配置
 # ──────────────────────────────────────────────
-DEFAULT_LLM_MODEL = os.environ.get("TWPGEN_LLM_MODEL", "deepseek-v3")
+DEFAULT_LLM_MODEL = project_args.llm.model
+LLM_ENABLE_THINKING = project_args.llm.enable_thinking
 
 def build_llm_client():
-    api_key = os.environ.get("OPENAI_API_KEY")
-    base_url = os.environ.get("OPENAI_BASE_URL") or os.environ.get("OPENAI_API_BASE")
+    api_key = os.environ.get("OPENAI_API_KEY") or project_args.llm.api_key
+    base_url = (
+        os.environ.get("OPENAI_BASE_URL")
+        or os.environ.get("OPENAI_API_BASE")
+        or project_args.llm.base_url
+    )
     if not api_key:
         raise RuntimeError("OPENAI_API_KEY is not set. Copy .env.example to .env and configure your local API key.")
     kwargs = {"api_key": api_key}
@@ -229,7 +234,8 @@ def summarize_topic(topic_name, sentences, model, doc_title):
                 {"role": "user", "content": prompt}
             ],
             temperature=0.1,
-            max_tokens=300
+            max_tokens=300,
+            extra_body={"enable_thinking": LLM_ENABLE_THINKING},
         )
         raw = resp.choices[0].message.content.strip()
         data = extract_json_from_text(raw)
@@ -301,7 +307,8 @@ def classify_topic_by_cluster(topic_name, sentences, summary, model, doc_title):
                 {"role": "user", "content": prompt}
             ],
             temperature=0.1,
-            max_tokens=500
+            max_tokens=500,
+            extra_body={"enable_thinking": LLM_ENABLE_THINKING},
         )
         raw = resp.choices[0].message.content.strip()
         data = extract_json_from_text(raw)
@@ -419,7 +426,8 @@ def generate_overview(all_summaries, model, doc_title):
                 {"role": "user", "content": prompt}
             ],
             temperature=0.1,
-            max_tokens=450
+            max_tokens=450,
+            extra_body={"enable_thinking": LLM_ENABLE_THINKING},
         )
         return resp.choices[0].message.content.strip()
     except Exception as e:
@@ -473,7 +481,8 @@ def generate_background(all_summaries, model, doc_title):
                 {"role": "user", "content": prompt}
             ],
             temperature=0.1,
-            max_tokens=450
+            max_tokens=450,
+            extra_body={"enable_thinking": LLM_ENABLE_THINKING},
         )
         return resp.choices[0].message.content.strip()
     except Exception as e:
@@ -525,7 +534,8 @@ def generate_conclusion(all_summaries, model, doc_title):
                 {"role": "user", "content": prompt}
             ],
             temperature=0.1,
-            max_tokens=450
+            max_tokens=450,
+            extra_body={"enable_thinking": LLM_ENABLE_THINKING},
         )
         return resp.choices[0].message.content.strip()
     except Exception as e:
@@ -586,7 +596,8 @@ def generate_chapter_outline(chapter, summary_list, model, doc_title):
                 {"role": "user", "content": prompt}
             ],
             temperature=0.1,
-            max_tokens=700
+            max_tokens=700,
+            extra_body={"enable_thinking": LLM_ENABLE_THINKING},
         )
         return resp.choices[0].message.content.strip()
     except Exception as e:
@@ -764,6 +775,7 @@ def process_single_topic(topic_name, model=DEFAULT_LLM_MODEL):
 
 
 def main():
+    global LLM_ENABLE_THINKING
     parser = argparse.ArgumentParser(description="生成技术白皮书大纲")
     parser.add_argument(
         "--input", type=str,
@@ -780,16 +792,31 @@ def main():
         default=f"./dataset/{project_args.dataset}/outline.txt",
         help="输出大纲文件路径"
     )
-    parser.add_argument("--model", type=str, default="deepseek-v3", help="使用的模型")
+    parser.add_argument(
+        "--model", type=str, default=DEFAULT_LLM_MODEL,
+        help="使用的模型（默认读取根目录统一配置）",
+    )
+    thinking_group = parser.add_mutually_exclusive_group()
+    thinking_group.add_argument(
+        "--thinking", dest="enable_thinking", action="store_true",
+        help="开启模型推理（覆盖根目录统一配置）",
+    )
+    thinking_group.add_argument(
+        "--no-thinking", dest="enable_thinking", action="store_false",
+        help="关闭模型推理（覆盖根目录统一配置）",
+    )
+    parser.set_defaults(enable_thinking=None)
     parser.add_argument(
         "--all", action="store_true",
-        help="处理 topic.txt 中的所有题目，依次生成大纲"
+        help="处理配置中的全部题目，依次生成大纲"
     )
     parser.add_argument(
         "--topic", type=str, default=None,
         help="指定单个题目目录名称（如：算力运维体系技术白皮书）"
     )
     args = parser.parse_args()
+    if args.enable_thinking is not None:
+        LLM_ENABLE_THINKING = args.enable_thinking
 
     if args.all:
         print("=" * 60)

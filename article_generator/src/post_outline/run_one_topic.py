@@ -33,14 +33,23 @@ def main() -> int:
     parser.add_argument("--planner-model", default=None)
     parser.add_argument("--base-url", default=None, help="overrides OPENAI_BASE_URL")
     parser.add_argument("--api-key", default=None, help="overrides OPENAI_API_KEY")
-    parser.add_argument("--no-thinking", action="store_true")
+    thinking_group = parser.add_mutually_exclusive_group()
+    thinking_group.add_argument(
+        "--thinking", dest="enable_thinking", action="store_true",
+        help="enable model reasoning (overrides the root configuration)",
+    )
+    thinking_group.add_argument(
+        "--no-thinking", dest="enable_thinking", action="store_false",
+        help="disable model reasoning (overrides the root configuration)",
+    )
+    parser.set_defaults(enable_thinking=None)
     args = parser.parse_args()
 
     settings = resolve_settings(
         model=args.model,
         base_url=args.base_url,
         api_key=args.api_key,
-        enable_thinking=not args.no_thinking,
+        enable_thinking=args.enable_thinking,
         env_file=args.env_file,
     )
     client = build_client(settings)
@@ -58,7 +67,7 @@ def main() -> int:
         source_root=args.source_root,
         output_root=args.output_root,
         optimized=True,
-        enable_thinking=not args.no_thinking,
+        enable_thinking=settings.enable_thinking,
         overwrite=True,
     )
     print(

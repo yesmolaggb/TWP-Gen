@@ -46,7 +46,7 @@ Batch options:
 | `--start-index N` | Start from index `N` in the configured topic list |
 | `--limit N` | Process at most `N` topics; `0` (default) means all |
 | `--overwrite` | Regenerate an existing article |
-| `--no-thinking` | Disable model reasoning |
+| `--thinking` / `--no-thinking` | Override the reasoning switch; if omitted, use the root configuration |
 | `--model`, `--base-url`, `--api-key` | Override the central configuration for this run |
 
 ## Outputs

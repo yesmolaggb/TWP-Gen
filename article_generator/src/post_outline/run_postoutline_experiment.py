@@ -1554,7 +1554,16 @@ def main() -> int:
         help="maximum number of topics after --start-index (0 = all)",
     )
     parser.add_argument("--topic", action="append", default=[])
-    parser.add_argument("--no-thinking", action="store_true")
+    thinking_group = parser.add_mutually_exclusive_group()
+    thinking_group.add_argument(
+        "--thinking", dest="enable_thinking", action="store_true",
+        help="enable model reasoning (overrides the root configuration)",
+    )
+    thinking_group.add_argument(
+        "--no-thinking", dest="enable_thinking", action="store_false",
+        help="disable model reasoning (overrides the root configuration)",
+    )
+    parser.set_defaults(enable_thinking=None)
     parser.add_argument("--overwrite", action="store_true")
     args = parser.parse_args()
 
@@ -1562,7 +1571,7 @@ def main() -> int:
         model=args.model,
         base_url=args.base_url,
         api_key=args.api_key,
-        enable_thinking=not args.no_thinking,
+        enable_thinking=args.enable_thinking,
         env_file=args.env_file,
     )
     client = build_client(settings)
@@ -1590,7 +1599,7 @@ def main() -> int:
                 source_root=args.source_root,
                 output_root=args.output_root,
                 optimized=args.variant == "optimized",
-                enable_thinking=not args.no_thinking,
+                enable_thinking=settings.enable_thinking,
                 overwrite=args.overwrite,
             )
         except Exception as error:  # noqa: BLE001
@@ -1603,7 +1612,7 @@ def main() -> int:
     payload = {
         "model": model,
         "variant": args.variant,
-        "thinking": not args.no_thinking,
+        "thinking": settings.enable_thinking,
         "elapsed_seconds": round(time.time() - started, 2),
         "topics": run_manifest,
     }
