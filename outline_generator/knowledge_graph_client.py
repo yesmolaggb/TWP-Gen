@@ -51,6 +51,9 @@ class ConceptNetRequest:
         def try_task(req_url):
             return requests.get(req_url, proxies={}, timeout=30).json()
 
+        conceptnet_base_url = os.environ.get(
+            "TWPGEN_CONCEPTNET_API_URL", "https://api.conceptnet.io"
+        ).rstrip("/")
         cur_verb_id = ""  # record current verb id
         with tqdm(total=len(self.word_list) - self.savepoint - 1) as t:
             for i in range(self.savepoint + 1, len(self.word_list)):
@@ -58,7 +61,7 @@ class ConceptNetRequest:
                 sent_id = self.word_list[i]["sent_id"]
                 word_type = self.word_list[i]["word_type"]
                 root_id = "/c/zh/{}".format(word)
-                req_url = "http://10.146.130.132:22482{}".format(root_id)
+                req_url = f"{conceptnet_base_url}{root_id}"
                 if word_type == "v":
                     cur_verb_id = root_id
 

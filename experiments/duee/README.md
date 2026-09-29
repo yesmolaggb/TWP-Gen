@@ -6,6 +6,8 @@ in the paper.
 - `clustering_metrics.py` implements ARI, NMI, Hungarian-matched ACC, and B-cubed F1.
 - `compare_clustering_algorithms.py` compares K-Means, GMM, and Bisecting K-Means on a fixed multidimensional representation.
 - `plot_representation_tsne.py` generates the two-panel t-SNE comparison between semantic-only and multidimensional representations used for the paper figure.
+- `prepare_controlled_subset.py` normalizes the prepared labels and exports the
+  1,011-instance manifest distributed in `dataset/duee/`.
 
 The plotting script expects an NPZ file containing `labels`,
 `semantic_embeddings`, and `gesi_embeddings`, plus the corresponding metrics JSON.

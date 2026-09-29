@@ -12,6 +12,7 @@ section types from the table-of-contents corpus described in the paper.
 5. `classify_toc_sections.py`: assigns first-level headings to the 11 section types.
 6. `analyze_categories.py`: computes category occurrence, position, and depth statistics.
 7. `analyze_sequences.py`: analyzes section sequences and common templates.
+8. `export_toc_dataset.py`: combines the classified TOCs into one JSONL file.
 
 ## Configuration
 
@@ -27,5 +28,5 @@ export TWPGEN_TAXONOMY_MODEL=qwen3-max
 ```
 
 The source white papers are not redistributed because they remain the property
-of their publishers. The scripts can be applied to OCR output with the same
-directory structure.
+of their publishers. The 892 classified TOC records used to build the taxonomy
+are provided in `dataset/taxonomy/whitepaper_toc_892.jsonl`.

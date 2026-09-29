@@ -33,10 +33,12 @@ def load_checkpoint(path: Path) -> dict:
         return torch.load(path, map_location="cpu")
 
 
-def selected_checkpoints(dataset_root: Path, topics_file: Path | None) -> list[Path]:
+def selected_checkpoints(
+    dataset_root: Path, topics_file: Path | None, max_topics: int | None
+) -> list[Path]:
     paths = sorted(dataset_root.glob("*/clusters_/embed_0.pt"))
     if topics_file is None:
-        return paths
+        return paths[:max_topics] if max_topics else paths
     wanted = {
         line.strip()
         for line in topics_file.read_text(encoding="utf-8").splitlines()
@@ -108,6 +110,12 @@ def main() -> None:
     parser.add_argument("--dataset-root", type=Path, default=Path("dataset"))
     parser.add_argument("--output-dir", type=Path, default=Path("output/k_sensitivity"))
     parser.add_argument("--topics-file", type=Path, default=None)
+    parser.add_argument(
+        "--max-topics",
+        type=int,
+        default=15,
+        help="Use the first N sorted topics when --topics-file is omitted (default: 15).",
+    )
     parser.add_argument("--k", type=int, nargs="+", default=DEFAULT_K)
     parser.add_argument("--random-state", type=int, default=42)
     parser.add_argument("--n-init", type=int, default=20)
@@ -115,7 +123,11 @@ def main() -> None:
     parser.add_argument("--silhouette-sample-size", type=int, default=10000)
     args = parser.parse_args()
 
-    checkpoints = selected_checkpoints(args.dataset_root, args.topics_file)
+    checkpoints = selected_checkpoints(
+        args.dataset_root,
+        args.topics_file,
+        None if args.topics_file else args.max_topics,
+    )
     if not checkpoints:
         raise FileNotFoundError(
             f"No <topic>/clusters_/embed_0.pt files under {args.dataset_root}"
@@ -206,6 +218,11 @@ def main() -> None:
         "protocol": {
             "dataset_root": str(args.dataset_root.resolve()),
             "topics": len(checkpoints),
+            "topic_selection": (
+                str(args.topics_file.resolve())
+                if args.topics_file
+                else f"first {args.max_topics} topics in sorted dataset order"
+            ),
             "k_values": args.k,
             "representation": "L2-normalized topic-specific embed_0.pt",
             "weighted_kmeans": True,

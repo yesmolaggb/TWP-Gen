@@ -7,9 +7,12 @@
 !/dataset/whitepaper_topics.json
 !/dataset/whitepaper_topics.txt
 !/dataset/evaluation/
+!/dataset/duee/
+!/dataset/taxonomy/
 /logs/
 /output/
-/resources/
+/resources/*
+!/resources/samples/
 /.pipeline_state/
 /.pipeline_locks/
 
