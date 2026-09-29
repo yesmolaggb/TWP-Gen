@@ -367,9 +367,12 @@ def train(args, emb_dict):
     z = F.normalize(z, dim=-1)
 
     n_samples = z.shape[0]
-    effective_n_clusters = min(args.n_clusters, max(2, n_samples - 1))
-    if effective_n_clusters != args.n_clusters:
-        print(f"  WARNING: n_samples={n_samples} < n_clusters={args.n_clusters}, auto set to {effective_n_clusters}")
+    if n_samples <= args.n_clusters:
+        raise ValueError(
+            f"n_samples={n_samples} must be greater than the fixed "
+            f"n_clusters={args.n_clusters}"
+        )
+    effective_n_clusters = args.n_clusters
 
     print(f"Running K-Means for initialization (n_clusters={effective_n_clusters})")
     kmeans = KMeans(n_clusters=effective_n_clusters, n_init=5)
@@ -533,7 +536,7 @@ if __name__ == "__main__":
     # parser.add_argument('--dataset_path', type=str)
     # parser.add_argument('--input_emb_name', type=str)
     parser.add_argument("--lr", type=float, default=5e-4)
-    parser.add_argument("--n_clusters", default=30, type=int)
+    parser.add_argument("--n_clusters", default=60, type=int)
     parser.add_argument(
         "--input_dim1", default=1000, type=int
     )  # default for covid19 dataset 736

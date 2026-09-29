@@ -539,7 +539,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--corpus_type", default=_default_dataset, help="corpus type")
     parser.add_argument("--lm_type", default="chinese-bert-wwm", help="language model name")
-    parser.add_argument("--top_k_expand_result", default=10, type=int, help="top_k expansion results")
+    parser.add_argument(
+        "--top_k_expand_result",
+        default=_cfg.top_k_expand_result if _cfg is not None else 50,
+        type=int,
+        help="top_k expansion results",
+    )
     parser.add_argument("--gpu_ids", nargs="+", default=[0,1], type=int, help="gpu ids, e.g. 0 1")
     parser.add_argument("--num_workers", default=16, type=int, help="number of parallel workers")
     args = parser.parse_args()

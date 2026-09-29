@@ -490,7 +490,12 @@ if __name__ == '__main__':
     parser.add_argument("--input_file", default="./20docs_cleaned_parsed_svo_0415.pk")
     parser.add_argument("--lm_type", default="blu", help="language model name")
     parser.add_argument("--lm_layer", default=-1, help="language model layer for features")
-    parser.add_argument("--top_k", default=10, type=int, help="top_k expansion results")
+    parser.add_argument(
+        "--top_k",
+        default=_cfg.top_k_expand_result if _cfg is not None else 50,
+        type=int,
+        help="top_k expansion results",
+    )
     parser.add_argument("--gpu_id", default=0, type=int, help="gpu id for bert model")
     parser.add_argument("--dict_file", default=None, help="path to the verb sense dictionary")
     args = parser.parse_args()
