@@ -1,0 +1,251 @@
+{
+  "description": "Document-level evaluation scores for the 10 released TWP-Gen examples.",
+  "evaluation": {
+    "generator": "Qwen3-32B-Instruct with reasoning",
+    "evaluator": "Qwen3-32B-Instruct",
+    "evaluation_runs": 1,
+    "score_scale": "0-5",
+    "aggregation": "Unweighted arithmetic mean"
+  },
+  "metric_order": [
+    "relevance",
+    "coverage",
+    "depth",
+    "novelty",
+    "technical_specificity",
+    "understandability",
+    "structurality",
+    "citation_sufficiency",
+    "citation_validity",
+    "factual_consistency"
+  ],
+  "aggregate": {
+    "document_count": 10,
+    "relevance": 4.8,
+    "coverage": 5.0,
+    "depth": 5.0,
+    "novelty": 5.0,
+    "technical_specificity": 4.4,
+    "understandability": 4.0,
+    "structurality": 4.4,
+    "citation_sufficiency": 4.0,
+    "citation_validity": 4.0,
+    "factual_consistency": 4.0,
+    "content_quality": 4.95,
+    "white_paper_adaptability": 4.267,
+    "evidence_credibility": 4.0,
+    "overall": 4.46
+  },
+  "documents": [
+    {
+      "topic": "5G核心网安全架构及关键技术白皮书",
+      "scores": {
+        "relevance": 5,
+        "coverage": 5,
+        "depth": 5,
+        "novelty": 5,
+        "technical_specificity": 4,
+        "understandability": 4,
+        "structurality": 4,
+        "citation_sufficiency": 4,
+        "citation_validity": 4,
+        "factual_consistency": 4
+      },
+      "group_means": {
+        "content_quality": 5.0,
+        "white_paper_adaptability": 4.0,
+        "evidence_credibility": 4.0
+      },
+      "overall": 4.4
+    },
+    {
+      "topic": "6G传输技术白皮书",
+      "scores": {
+        "relevance": 5,
+        "coverage": 5,
+        "depth": 5,
+        "novelty": 5,
+        "technical_specificity": 5,
+        "understandability": 4,
+        "structurality": 5,
+        "citation_sufficiency": 4,
+        "citation_validity": 4,
+        "factual_consistency": 4
+      },
+      "group_means": {
+        "content_quality": 5.0,
+        "white_paper_adaptability": 4.667,
+        "evidence_credibility": 4.0
+      },
+      "overall": 4.6
+    },
+    {
+      "topic": "6G数字孪生网络安全技术白皮书",
+      "scores": {
+        "relevance": 5,
+        "coverage": 5,
+        "depth": 5,
+        "novelty": 5,
+        "technical_specificity": 4,
+        "understandability": 4,
+        "structurality": 4,
+        "citation_sufficiency": 4,
+        "citation_validity": 4,
+        "factual_consistency": 4
+      },
+      "group_means": {
+        "content_quality": 5.0,
+        "white_paper_adaptability": 4.0,
+        "evidence_credibility": 4.0
+      },
+      "overall": 4.4
+    },
+    {
+      "topic": "6G无源物联网定位技术白皮书",
+      "scores": {
+        "relevance": 4,
+        "coverage": 5,
+        "depth": 5,
+        "novelty": 5,
+        "technical_specificity": 4,
+        "understandability": 4,
+        "structurality": 4,
+        "citation_sufficiency": 4,
+        "citation_validity": 4,
+        "factual_consistency": 4
+      },
+      "group_means": {
+        "content_quality": 4.75,
+        "white_paper_adaptability": 4.0,
+        "evidence_credibility": 4.0
+      },
+      "overall": 4.3
+    },
+    {
+      "topic": "6G网络内生AI技术白皮书",
+      "scores": {
+        "relevance": 5,
+        "coverage": 5,
+        "depth": 5,
+        "novelty": 5,
+        "technical_specificity": 5,
+        "understandability": 4,
+        "structurality": 5,
+        "citation_sufficiency": 4,
+        "citation_validity": 4,
+        "factual_consistency": 4
+      },
+      "group_means": {
+        "content_quality": 5.0,
+        "white_paper_adaptability": 4.667,
+        "evidence_credibility": 4.0
+      },
+      "overall": 4.6
+    },
+    {
+      "topic": "6G网络协作通感技术白皮书",
+      "scores": {
+        "relevance": 5,
+        "coverage": 5,
+        "depth": 5,
+        "novelty": 5,
+        "technical_specificity": 4,
+        "understandability": 4,
+        "structurality": 4,
+        "citation_sufficiency": 4,
+        "citation_validity": 4,
+        "factual_consistency": 4
+      },
+      "group_means": {
+        "content_quality": 5.0,
+        "white_paper_adaptability": 4.0,
+        "evidence_credibility": 4.0
+      },
+      "overall": 4.4
+    },
+    {
+      "topic": "6G通感算智融合原生基座技术白皮书",
+      "scores": {
+        "relevance": 5,
+        "coverage": 5,
+        "depth": 5,
+        "novelty": 5,
+        "technical_specificity": 4,
+        "understandability": 4,
+        "structurality": 4,
+        "citation_sufficiency": 4,
+        "citation_validity": 4,
+        "factual_consistency": 4
+      },
+      "group_means": {
+        "content_quality": 5.0,
+        "white_paper_adaptability": 4.0,
+        "evidence_credibility": 4.0
+      },
+      "overall": 4.4
+    },
+    {
+      "topic": "分布式智算中心无损网络技术白皮书",
+      "scores": {
+        "relevance": 5,
+        "coverage": 5,
+        "depth": 5,
+        "novelty": 5,
+        "technical_specificity": 4,
+        "understandability": 4,
+        "structurality": 4,
+        "citation_sufficiency": 4,
+        "citation_validity": 4,
+        "factual_consistency": 4
+      },
+      "group_means": {
+        "content_quality": 5.0,
+        "white_paper_adaptability": 4.0,
+        "evidence_credibility": 4.0
+      },
+      "overall": 4.4
+    },
+    {
+      "topic": "负载均衡技术白皮书",
+      "scores": {
+        "relevance": 5,
+        "coverage": 5,
+        "depth": 5,
+        "novelty": 5,
+        "technical_specificity": 5,
+        "understandability": 4,
+        "structurality": 5,
+        "citation_sufficiency": 4,
+        "citation_validity": 4,
+        "factual_consistency": 4
+      },
+      "group_means": {
+        "content_quality": 5.0,
+        "white_paper_adaptability": 4.667,
+        "evidence_credibility": 4.0
+      },
+      "overall": 4.6
+    },
+    {
+      "topic": "超节点技术白皮书",
+      "scores": {
+        "relevance": 4,
+        "coverage": 5,
+        "depth": 5,
+        "novelty": 5,
+        "technical_specificity": 5,
+        "understandability": 4,
+        "structurality": 5,
+        "citation_sufficiency": 4,
+        "citation_validity": 4,
+        "factual_consistency": 4
+      },
+      "group_means": {
+        "content_quality": 4.75,
+        "white_paper_adaptability": 4.667,
+        "evidence_credibility": 4.0
+      },
+      "overall": 4.5
+    }
+  ]
+}

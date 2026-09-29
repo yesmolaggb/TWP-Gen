@@ -6,7 +6,7 @@ The article and reference file with the same stem form one complete example.
 
 - `articles/`: generated white papers.
 - `references/`: citation and source records paired with the articles.
-- `scores.csv`: the ten metric scores, three group means, and overall mean for
+- `scores.json`: the ten metric scores, three group means, and overall mean for
   every published example.
 
 The scores were produced in one completed evaluation run using
