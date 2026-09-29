@@ -41,7 +41,7 @@
     }
   },
   "matched_comparison": {
-    "ConvergeWriter_semantic_only": {
+    "semantic_only": {
       "ARI": {
         "mean": 34.03245133086861,
         "std": 2.9099805470855986,
@@ -139,7 +139,7 @@
         ]
       }
     },
-    "GESI_multidimensional_latent": {
+    "TWP-Gen_multidimensional": {
       "ARI": {
         "mean": 50.54813531479555,
         "std": 2.048385291703434,
