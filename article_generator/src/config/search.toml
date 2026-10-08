@@ -1,0 +1,5 @@
+[search]
+engine = "tavily"
+timeout = 30
+jina_api_key = ""
+tavily_api_key = ""

@@ -1,0 +1,60 @@
+[basic]
+base_url = ""
+api_base = ""
+model = "qwen3-32b"
+api_key = ""
+max_tokens = 2048
+context_window = 32769
+temperature = 0.6
+enable_thinking = true
+
+[clarify]
+base_url = ""
+api_base = ""
+model = "qwen3-32b"
+api_key = ""
+max_tokens = 2048
+context_window = 32769
+temperature = 0.6
+enable_thinking = true
+
+[planner]
+base_url = ""
+api_base = ""
+model = "qwen3-32b"
+api_key = ""
+max_tokens = 8192
+context_window = 32769
+temperature = 0.6
+enable_thinking = true
+
+[query_generation]
+base_url = ""
+api_base = ""
+model = "qwen3-32b"
+api_key = ""
+max_tokens = 1024
+context_window = 32769
+temperature = 0.6
+enable_thinking = true
+
+[evaluate]
+base_url = ""
+api_base = ""
+model = "qwen3-32b"
+api_key = ""
+max_tokens = 4096
+context_window = 32769
+temperature = 0.6
+enable_thinking = true
+
+[report]
+base_url = ""
+api_base = ""
+model = "qwen3-32b"
+api_key = ""
+max_tokens = 8192
+context_window = 32769
+temperature = 0.6
+enable_thinking = true
+
